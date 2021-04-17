@@ -1,0 +1,5 @@
+outs:
+- md5: deace3b80d62b760c003967739019d74.dir
+  size: 27795777
+  nfiles: 403
+  path: funsd
