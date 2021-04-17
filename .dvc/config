@@ -1,4 +1,0 @@
-[core]
-    remote = storage
-['remote "storage"']
-    url = s3://fordaz-fsdl-2021-final-project
