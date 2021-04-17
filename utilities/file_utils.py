@@ -9,7 +9,7 @@ def load_json(base_dir, fname):
 
 def check_mkdir(dir_name):
     if not os.path.exists(dir_name):
-        os.mkdir(dir_name)
+        os.makedirs(dir_name)
 
 
 def save_by_line(body, base_output_dir, out_fname):
