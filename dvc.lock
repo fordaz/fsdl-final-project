@@ -1,0 +1,21 @@
+schema: '2.0'
+stages:
+  preprocessing:
+    cmd: python bin/clean_annotations.py ./datasets/funsd/training_data/annotations
+      ./datasets/generated/training/annotations
+    deps:
+    - path: ./datasets/funsd/training_data/annotations
+      md5: 8f887c3ea0bad443a86012c4b3254a0e.dir
+      size: 8379410
+      nfiles: 149
+    - path: bin/clean_annotations.py
+      md5: a9cabf15b68afc1823a3f66761ec9867
+      size: 1028
+    params:
+      params.yaml:
+        preprocess.combined_fname: all_clean_annotations.json
+    outs:
+    - path: ./datasets/generated/training/annotations
+      md5: dd02404110a31b1dffaba15f5c530909.dir
+      size: 1672540
+      nfiles: 150
