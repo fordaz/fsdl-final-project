@@ -52,3 +52,6 @@ class AnnotationsVocabulary():
 
     def __len__(self):
         return len(self._token_to_idx)
+
+    def get_unk_token(self):
+        return self._unk_token

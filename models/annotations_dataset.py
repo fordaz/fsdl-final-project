@@ -25,3 +25,6 @@ class AnnotationsDataset(Dataset):
 
     def get_num_batches(self, batch_size):
         return self._annotations_len // batch_size
+
+    def get_vectorizer(self):
+        return self._vectorizer

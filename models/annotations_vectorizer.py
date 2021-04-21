@@ -6,13 +6,28 @@ class AnnotationsVectorizer():
     def __init__(self, annotations_vocab):
         self._vocab = annotations_vocab
 
-    def vectorize(self, annotation):
-        lst = [self._vocab.begin_seq_index]
-        lst.extend([self._vocab.lookup_token(character) for character in annotation])
-        lst.extend([self._vocab.end_seq_index])
+    def vectorize(self, annotation, wrap=True):
+        lst = []
 
-        tensor = torch.tensor(lst).long()
-        return tensor
+        if wrap:
+            lst.extend([self._vocab.begin_seq_index])
+
+        lst.extend([self._vocab.lookup_token(character) for character in annotation])
+
+        if wrap:
+            lst.extend([self._vocab.end_seq_index])
+
+        return torch.tensor(lst).long()
+
+        # annotation_tensor = torch.tensor(lst).long()
+
+        # inputs = annotation_tensor[:-1]
+        # targets = annotation_tensor[1:]
+
+        # return inputs, targets
+
+    def vectorize_char(self, character):
+        return torch.tensor([self._vocab.lookup_token(character)]).long()
 
     @classmethod
     def from_text(cls, annotations):
@@ -34,3 +49,6 @@ class AnnotationsVectorizer():
 
     def to_serializable(self):
         return {'vocab': self._vocab}
+    
+    def get_vocabulary(self):
+        return self._vocab
