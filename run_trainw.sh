@@ -5,7 +5,7 @@ echo "Using python path $PYTHONPATH"
 source /home/ec2-user/anaconda3/etc/profile.d/conda.sh
 
 # activating the aws instance conda environment ready for DL
-conda activate pytorch_p36
+conda activate pytorch_p27
 
 # installing the application dependencies
 pip install -r requirements.txt
