@@ -6,6 +6,6 @@ echo `id`
 
 echo $PYTHONPATH
 
-# conda activate pytorch_p36
+conda activate pytorch_p36
 
-# python bin/run_train.py
+python bin/run_train.py
