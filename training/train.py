@@ -175,7 +175,7 @@ def save_model(model, device, vectorizer, saved_model_fname, dataset_fname):
     }
 
     mlflow_pyfunc_model_fname = f"{saved_model_fname}_wrapper"
-    mlflow.pyfunc.save_model(path=mlflow_pyfunc_model_fname, 
+    mlflow.pyfunc.save_model(path=mlflow_pyfunc_model_fname, code_path=["training", "models"],
                              python_model=LSTMAnnotationsWrapper(), 
                              artifacts=artifacts, conda_env=conda_env)
 
