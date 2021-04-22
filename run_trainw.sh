@@ -6,6 +6,8 @@ echo `id`
 
 echo $PYTHONPATH
 
+source /home/ec2-user/anaconda3/etc/profile.d/conda.sh
+
 conda activate pytorch_p36
 
 python bin/run_train.py
