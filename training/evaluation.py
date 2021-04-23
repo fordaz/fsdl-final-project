@@ -67,10 +67,6 @@ def verify2(dataset_fname, saved_model_fname):
 
 
 if __name__ == "__main__":
-    # save_model_dir = "saved_model_001"
-    # dataset_fname = "./training/test_input_annotations.txt"
-    # verify(dataset_fname, save_model_dir)
-    
     save_model_dir = "saved_model_001_wrapper"
     dataset_fname = "./training/test_input_annotations.txt"
     verify2(dataset_fname, save_model_dir)

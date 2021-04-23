@@ -18,6 +18,8 @@ import mlflow.pyfunc
 
 from models.annotations_dataset import AnnotationsDataset
 from models.lstm_annotations_lm import LSTMAnnotationsLM
+from models.lstm_annotations_lm_wrapper import LSTMAnnotationsWrapper
+
 
 RANDOM_SEED = 123
 torch.manual_seed(RANDOM_SEED)
@@ -33,8 +35,8 @@ args = Namespace(
     num_hidden=1,
     device=torch.device('cuda' if torch.cuda.is_available() else 'cpu'),
     learning_rate=0.005,
-    epochs=100,
-    epoch_check_point=10,
+    epochs=3,
+    epoch_check_point=1,
     sample_text_len=500
 )
 
@@ -78,77 +80,8 @@ def evaluate(model, device, vectorizer, vocab, predict_len=100, temperature=0.8)
 
     return predicted
 
-class LSTMAnnotationsWrapper(mlflow.pyfunc.PythonModel):
-
-    def load_context(self, context):
-        self.lstm_model = mlflow.pytorch.load_model(context.artifacts["pytorch_model"])
-        self.dataset = AnnotationsDataset.load(context.artifacts["dataset_input_file"])
-        self.vectorizer = self.dataset.get_vectorizer()
-        self.vocab = self.vectorizer.get_vocabulary()
-
-    def predict(self, context, model_input):
-        print(f"Getting model inputs {model_input} type {type(model_input)}")
-        model, vectorizer, vocab = self.lstm_model, self.vectorizer, self.vocab
-        
-        device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        predict_len=100
-        temperature=0.8
-
-        prime_str = vocab.START_SEQ
-        hidden = model.init_zero_state(device)
-        cell = model.init_zero_state(device)
-        prime_input = vectorizer.vectorize(prime_str, wrap=False)
-        predicted = model_input
-
-        # Use priming string to "build up" hidden state
-        for p in range(len(prime_str) - 1):
-            _, (hidden, cell) = model(prime_input[p].to(device), (hidden.to(device), cell.to(device)))
-        inp = prime_input[-1]
-        
-        for p in range(predict_len):
-            print(f"evaluate inputs inp {inp.shape} hidden {hidden.shape} cell {cell.shape}")
-            output, (hidden, cell) = model(inp.to(device), (hidden.to(device), cell.to(device)))
-            
-            # Sample from the network as a multinomial distribution
-            output_dist = output.data.view(-1).div(temperature).exp()
-            top_i = torch.multinomial(output_dist, 1)[0]
-            
-            # Add predicted character to string and use as next input
-            predicted_char = vocab.lookup_index(top_i.item())
-            print(f"predicted_char {predicted_char}")
-            if predicted_char == vocab.get_unk_token():
-                continue
-            if predicted_char == vocab.END_SEQ or predicted_char == vocab.START_SEQ:
-                break
-            predicted += predicted_char
-            inp = vectorizer.vectorize(predicted_char, wrap=False)
-        
-        print(f"finally predicted  {predicted}")
-        return predicted
 
 def save_model(model, device, vectorizer, saved_model_fname, dataset_fname):
-    # hidden = model.init_zero_state(device)
-    # cell = model.init_zero_state(device)
-    # prime_input = vectorizer.vectorize('{', wrap=False)
-    # print(type(prime_input), prime_input.shape, prime_input)
-    # print(type(hidden), hidden.shape, hidden)
-    # print(type(cell), cell.shape, cell)
-    # output, (hidden, cell) = model(prime_input.to(device), (hidden.to(device), cell.to(device)))
-    # print(type(output), output.shape, output)
-    # print(type(hidden), hidden.shape, hidden)
-    # print(type(cell), cell.shape, cell)
-    # input_schema = Schema([
-    #     TensorSpec(np.dtype(np.float32), (1,), "input"),
-    #     TensorSpec(np.dtype(np.float32), (2, 1, 100), "hidden"),
-    #     TensorSpec(np.dtype(np.float32), (2, 1, 100), "cell")
-    # ])
-    # output_schema = Schema([
-    #     TensorSpec(np.dtype(np.float32), (1, 103), "output"),
-    #     TensorSpec(np.dtype(np.float32), (2, 1, 100), "hidden"),
-    #     TensorSpec(np.dtype(np.float32), (2, 1, 100), "cell")
-    # ])    
-    # signature = ModelSignature(inputs=input_schema, outputs=output_schema)
-    # mlflow.pytorch.save_model(pytorch_model=model, signature=signature, path=saved_model_fname)
     mlflow.pytorch.save_model(pytorch_model=model, path=saved_model_fname)
 
     artifacts = {
