@@ -63,7 +63,6 @@ def evaluate(model, device, vectorizer, vocab, predict_len=100, temperature=0.8)
     inp = prime_input[-1]
     
     for p in range(predict_len):
-        print(f"evaluate inputs inp {inp.shape} hidden {hidden.shape} cell {cell.shape}")
         output, (hidden, cell) = model(inp.to(device), (hidden.to(device), cell.to(device)))
         
         # Sample from the network as a multinomial distribution
@@ -185,7 +184,7 @@ def train(dataset, saved_model_fname, dataset_fname):
     vocab = vectorizer.get_vocabulary()
     vocab_len = len(vocab)
     print(f"Training using device {args.device}")
-    
+
     model = LSTMAnnotationsLM(vocab_len, args.embedding_dim, args.hidden_dim, vocab_len, args.num_hidden)
     model = model.to(args.device)
 
