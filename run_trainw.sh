@@ -8,7 +8,10 @@ source /home/ec2-user/anaconda3/etc/profile.d/conda.sh
 conda activate pytorch_latest_p37
 
 # installing the application dependencies
-pip install -r requirements.txt
+pip install -r requirements-aws.txt
+
+# to avoid conflict trying to remove ruamel
+pip install dvc --ignore-installed ruamel.yaml
 
 # pulling the training datasets
 dvc pull
