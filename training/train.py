@@ -184,33 +184,39 @@ def train(dataset, saved_model_fname, dataset_fname):
     vectorizer = dataset.get_vectorizer()
     vocab = vectorizer.get_vocabulary()
     vocab_len = len(vocab)
+    print(f"1. Train")
 
     model = LSTMAnnotationsLM(vocab_len, args.embedding_dim, args.hidden_dim, vocab_len, args.num_hidden)
     model = model.to(args.device)
-    
+    print(f"2. Train")
+
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
     start_time = time.time()
-
+    print(f"3. Train")
     try:
         mlflow.start_run()
         mlflow.log_param("epochs", str(args.epochs))
+        print(f"4. Train")
 
         for epoch in range(args.epochs):
+            print(f"4.1. Train")
             hidden = model.init_zero_state(args.device)
             cell = model.init_zero_state(args.device)
+            print(f"5. Train")
 
             optimizer.zero_grad()
-            
+            print(f"6. Train")
             loss = 0.
             inputs, targets = sample_dataset(dataset, args.device)
+            print(f"7. Train")
             input_length = len(inputs)
             for c in range(input_length):
                 outputs, (hidden, cell) = model(inputs[c], (hidden, cell))
                 loss += F.cross_entropy(outputs, targets[c].view(1))
-
+            print(f"8. Train")
             loss /= input_length
             loss.backward()
-            
+            print(f"9. Train")
             optimizer.step()
 
             with torch.set_grad_enabled(False):
@@ -222,14 +228,18 @@ def train(dataset, saved_model_fname, dataset_fname):
                     print(f'Epoch {epoch} | Loss {loss.item():.2f}\n\n')
                     print(evaluate(model, args.device, vectorizer, vocab, args.sample_text_len), '\n')
                     print(50*'=')
-        
+        print(f"10. Train")
         save_model(model, args.device, vectorizer, saved_model_fname, dataset_fname)
 
     finally:
+        print(f"11. Train")
         mlflow.end_run()
+        print(f"12. Train")
 
 
 def train_driver(dataset_fname, saved_model_fname):
+    print(f"Starting the train driver {dataset_fname}")
     dataset = AnnotationsDataset.load(dataset_fname)
+    print(f"Starting the train driver: loaded dataset")
     train(dataset, saved_model_fname, dataset_fname)
 
