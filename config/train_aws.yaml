@@ -2,6 +2,6 @@ embedding_dim: 100
 hidden_dim: 100
 num_hidden: 1
 learning_rate: 0.005
-epochs: 10
-epoch_check_point: 2
+epochs: 10000
+epoch_check_point: 200
 sample_text_len: 500

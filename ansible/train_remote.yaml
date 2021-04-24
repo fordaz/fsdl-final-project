@@ -29,6 +29,13 @@
       owner: ec2-user
       group: ec2-user
       mode: '0400'
+  - name: Copy git config
+    copy:
+      src: /Users/fordaz/.gitconfig
+      dest: /home/ec2-user/.gitconfig
+      owner: ec2-user
+      group: ec2-user
+      mode: '0400'
   - name: Clone project code.
     git:
       repo: "https://{{gituser}}:{{gittoken}}@github.com/fordaz/fsdl-final-project.git"
