@@ -73,6 +73,8 @@ def evaluate(model, device, vectorizer, vocab, predict_len=100, temperature=0.8)
         
         # Add predicted character to string and use as next input
         predicted_char = vocab.lookup_index(top_i.item())
+        if predicted_char == vocab.get_unk_token():
+            continue
         if predicted_char == vocab.END_SEQ or predicted_char == vocab.START_SEQ:
             break
         predicted += predicted_char
