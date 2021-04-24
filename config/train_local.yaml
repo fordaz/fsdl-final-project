@@ -1,0 +1,7 @@
+embedding_dim: 100
+hidden_dim: 100
+num_hidden: 1
+learning_rate: 0.005
+epochs: 3
+epoch_check_point: 1
+sample_text_len: 500

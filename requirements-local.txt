@@ -2,3 +2,4 @@ torch
 mlflow
 dvc
 torchvision
+pyyaml

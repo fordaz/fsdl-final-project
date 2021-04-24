@@ -3,10 +3,11 @@
   hosts: all
   remote_user: ec2-user
   vars:
-    model_name: saved_model_004
+    model_name: saved_model_006
     model_output_dir: model_artifacts/{{model_name}}
     model_wrapper_output_dir: model_artifacts/{{model_name}}_wrapper
     dataset_file: datasets/generated/training/annotations/all_clean_annotations.json
+    config_file: config/train_aws.yaml
   vars_files:
     - secrets.yaml
   tasks:
@@ -35,13 +36,13 @@
       update: yes
       force: true
   - name: Change working dir run the train wrapper
-    shell: ./scripts/train_model.sh {{model_output_dir}} {{dataset_file}} > train_model.log
+    shell: ./scripts/train_model.sh {{config_file}} {{model_output_dir}} {{dataset_file}} > train_model.log 2>&1
     args:
       chdir: /home/ec2-user/workspace/fsdl-final-project
     environment:
       MLFLOW_TRACKING_URI: postgresql://{{dbuser}}:{{dbpass}}@terraform-20210415031713058400000001.c7anop1qkfor.us-west-2.rds.amazonaws.com/mlflowDbStore
       PYTHONPATH: /home/ec2-user/workspace/fsdl-final-project
   - name: Pushing the model
-    shell: ./scripts/push_model.sh {{model_name}} {{model_name}}_wrapper > push_model.log
+    shell: ./scripts/push_model.sh {{model_name}} {{model_name}}_wrapper > push_model.log 2>&1
     args:
       chdir: /home/ec2-user/workspace/fsdl-final-project

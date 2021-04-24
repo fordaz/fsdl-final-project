@@ -20,7 +20,6 @@ from models.annotations_dataset import AnnotationsDataset
 from models.lstm_annotations_lm import LSTMAnnotationsLM
 from models.lstm_annotations_lm_wrapper import LSTMAnnotationsWrapper
 
-
 RANDOM_SEED = 123
 torch.manual_seed(RANDOM_SEED)
 random.seed(RANDOM_SEED)
@@ -28,18 +27,6 @@ random.seed(RANDOM_SEED)
 PYTHON_VERSION = "{major}.{minor}.{micro}".format(major=version_info.major,
                                                   minor=version_info.minor,
                                                   micro=version_info.micro)
-
-args = Namespace(
-    embedding_dim=100,
-    hidden_dim=100,
-    num_hidden=1,
-    device=torch.device('cuda' if torch.cuda.is_available() else 'cpu'),
-    learning_rate=0.005,
-    epochs=3,
-    epoch_check_point=1,
-    sample_text_len=500
-)
-
 
 def sample_dataset(dataset, device):
     idx = random.randint(0, len(dataset)-1)
@@ -114,7 +101,7 @@ def save_model(model, device, vectorizer, saved_model_fname, dataset_fname):
                              artifacts=artifacts, conda_env=conda_env)
 
 
-def train(dataset, saved_model_fname, dataset_fname):
+def train(dataset, saved_model_fname, dataset_fname, args):
     vectorizer = dataset.get_vectorizer()
     vocab = vectorizer.get_vocabulary()
     vocab_len = len(vocab)
@@ -159,7 +146,7 @@ def train(dataset, saved_model_fname, dataset_fname):
         mlflow.end_run()
 
 
-def train_driver(dataset_fname, saved_model_fname):
+def train_driver(dataset_fname, saved_model_fname, args):
     dataset = AnnotationsDataset.load(dataset_fname)
-    train(dataset, saved_model_fname, dataset_fname)
+    train(dataset, saved_model_fname, dataset_fname, args)
 
