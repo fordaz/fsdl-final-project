@@ -1,5 +1,5 @@
 outs:
-- md5: 20887ec5cb7bb27ee1ae52415e1878bb.dir
-  size: 1644902
+- md5: 42e99563ae314d0dfed4197689e15b4b.dir
+  size: 1644512
   nfiles: 22
   path: saved_model_006_wrapper
