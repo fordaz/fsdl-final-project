@@ -3,7 +3,7 @@
   hosts: all
   remote_user: ec2-user
   vars:
-    model_name: saved_model_006
+    model_name: saved_model_010
     model_output_dir: model_artifacts/{{model_name}}
     model_wrapper_output_dir: model_artifacts/{{model_name}}_wrapper
     dataset_file: datasets/generated/training/annotations/all_clean_annotations.json
