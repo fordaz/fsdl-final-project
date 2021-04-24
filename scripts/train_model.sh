@@ -17,4 +17,4 @@ pip install dvc --ignore-installed ruamel.yaml
 dvc pull
 
 # launching the training
-python bin/run_train.py $1 $2
+python bin/run_train.py $1 $2 $3
