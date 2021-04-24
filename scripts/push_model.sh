@@ -1,5 +1,8 @@
 echo "Pushing model $1"
 
+# setting up conda
+source /home/ec2-user/anaconda3/etc/profile.d/conda.sh
+
 # activating the aws instance conda environment ready for DL
 conda activate pytorch_latest_p37
 
