@@ -23,7 +23,7 @@ class LSTMAnnotationsWrapper(mlflow.pyfunc.PythonModel):
         hidden = model.init_zero_state(device)
         cell = model.init_zero_state(device)
         prime_input = vectorizer.vectorize(prime_str, wrap=False)
-        predicted = model_input
+        predicted = ""
 
         # Use priming string to "build up" hidden state
         for p in range(len(prime_str) - 1):

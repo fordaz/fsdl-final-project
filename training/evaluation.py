@@ -67,7 +67,7 @@ def verify2(dataset_fname, saved_model_fname):
 
 
 if __name__ == "__main__":
-    save_model_dir = "saved_model_001_wrapper"
-    dataset_fname = "./training/test_input_annotations.txt"
+    save_model_dir = "model_artifacts/saved_model_baseline_wrapper"
+    dataset_fname = "datasets/generated/training/annotations/all_clean_annotations.json"
     verify2(dataset_fname, save_model_dir)
     
