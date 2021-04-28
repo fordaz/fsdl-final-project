@@ -20,7 +20,9 @@ class AnnotationsDataset(Dataset):
 
     def __getitem__(self, index):
         annotation = self._annotations[index]
+        print(f"Random annotation {annotation}")
         vect_annotation = self._vectorizer.vectorize(annotation)
+        print(f"Random vectorized annotation {vect_annotation}")
         return vect_annotation
 
     def get_num_batches(self, batch_size):

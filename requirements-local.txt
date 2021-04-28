@@ -1,5 +1,5 @@
-torch
+torch==1.7.0
 mlflow
 dvc
-torchvision
+torchvision==0.8.1
 pyyaml

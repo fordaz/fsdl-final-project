@@ -1,7 +1,11 @@
+import string
+import random
 import mlflow
 import torch
 from models.annotations_dataset import AnnotationsDataset
 from models.annotations_vectorizer import AnnotationsVectorizer
+from models.lstm_annotations_lm_wrapper import LSTMAnnotationsWrapper
+from collections import namedtuple
 
 def evaluate(model, device, vectorizer, vocab, predict_len=100, temperature=0.8):
     ## based on https://github.com/spro/practical-pytorch/
@@ -66,8 +70,34 @@ def verify2(dataset_fname, saved_model_fname):
     print(f"verified {evaluate2(model, dataset_fname)}")
 
 
+def verify3(dataset_fname, saved_model_fname):
+    device = torch.device('cpu')
+    kwargs = {"map_location":device}
+    ml_model = mlflow.pytorch.load_model(model_uri=saved_model_fname, **kwargs)
+    artifacts = {
+        "pytorch_model": saved_model_fname,
+        "dataset_input_file": dataset_fname
+    }
+    Context = namedtuple("Context", ["artifacts"])
+    lstm_wrapper = LSTMAnnotationsWrapper()
+    ctx = Context(artifacts)
+    lstm_wrapper.load_context(ctx)
+    vectorizer = AnnotationsVectorizer.from_text(dataset_fname)
+    vocab = vectorizer.get_vocabulary()
+
+    sample_blocks = 10
+    for i in range(sample_blocks):
+        sample_text = "{" + f"\"text\": \"{string.printable[random.randint(10, 61)]}" 
+        # print(evaluate(model, sample_text, TEXT_SAMPLE_LENGTH), '\n')
+        # prime_str = vocab.START_SEQ
+        # prime_input = vectorizer.vectorize(sample_text, wrap=False)
+        # print(f"Model input {prime_input}")
+        print(lstm_wrapper.predict(ctx, sample_text))
+
+
 if __name__ == "__main__":
-    save_model_dir = "model_artifacts/saved_model_baseline_wrapper"
+    save_model_dir = "model_artifacts/saved_model_baseline"
     dataset_fname = "datasets/generated/training/annotations/all_clean_annotations.json"
-    verify2(dataset_fname, save_model_dir)
+    # verify2(dataset_fname, save_model_dir)
+    verify3(dataset_fname, save_model_dir)
     

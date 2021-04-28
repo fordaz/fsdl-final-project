@@ -134,7 +134,7 @@ def train(dataset, saved_model_fname, dataset_fname, args):
             with torch.set_grad_enabled(False):
                 if epoch % args.epoch_check_point == 0:
                     mlflow.log_metrics({"epoch": epoch, "loss": loss.item()})
-                    mlflow.pytorch.log_model(model, saved_model_fname)
+                    # mlflow.pytorch.log_model(model, saved_model_fname)
                     # torch.save(model, saved_model_fname)
                     print(f'Time elapsed: {(time.time() - start_time)/60:.2f} min')
                     print(f'Epoch {epoch} | Loss {loss.item():.2f}\n\n')
