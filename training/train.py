@@ -19,6 +19,7 @@ import mlflow.pyfunc
 from models.annotations_dataset import AnnotationsDataset
 from models.lstm_annotations_lm import LSTMAnnotationsLM
 from models.lstm_annotations_lm_wrapper import LSTMAnnotationsWrapper
+from training.training_context import TrainingContext
 
 RANDOM_SEED = 123
 torch.manual_seed(RANDOM_SEED)
@@ -28,12 +29,21 @@ PYTHON_VERSION = "{major}.{minor}.{micro}".format(major=version_info.major,
                                                   minor=version_info.minor,
                                                   micro=version_info.micro)
 
-def sample_dataset(dataset, device):
-    idx = random.randint(0, len(dataset)-1)
-    inputs = dataset[idx]
-    inputs = torch.squeeze(inputs)
-    inputs, targets = inputs[:-1], inputs[1:]
-    return inputs.to(device), targets.to(device)
+
+def generate_batches(dataset, batch_size, shuffle=False,
+                     drop_last=True, device="cpu"): 
+    """
+    A generator function which wraps the PyTorch DataLoader. It will 
+      ensure each tensor is on the write device location.
+    """
+    dataloader = DataLoader(dataset=dataset, batch_size=batch_size,
+                            shuffle=shuffle, drop_last=drop_last)
+
+    for data_dict in dataloader:
+        out_data_dict = {}
+        for name, tensor in data_dict.items():
+            out_data_dict[name] = data_dict[name].to(device)
+        yield out_data_dict
 
 
 def evaluate(model, device, vectorizer, vocab, predict_len=100, temperature=0.8):
@@ -101,52 +111,192 @@ def save_model(model, device, vectorizer, saved_model_fname, dataset_fname):
                              artifacts=artifacts, conda_env=conda_env)
 
 
+def normalize_sizes(y_pred, y_true):
+    """Normalize tensor sizes
+    
+    Args:
+        y_pred (torch.Tensor): the output of the model
+            If a 3-dimensional tensor, reshapes to a matrix
+        y_true (torch.Tensor): the target predictions
+            If a matrix, reshapes to be a vector
+    """
+    if len(y_pred.size()) == 3:
+        y_pred = y_pred.contiguous().view(-1, y_pred.size(2))
+    if len(y_true.size()) == 2:
+        y_true = y_true.contiguous().view(-1)
+    return y_pred, y_true
+
+
+def sequence_loss(y_pred, y_true, mask_index):
+    # print(f"y_pred {type(y_pred)}, y_true {type(y_true)}")
+    # print(f"1. y_pred {y_pred.shape}, y_true {y_true.shape}")
+    y_pred, y_true = normalize_sizes(y_pred, y_true)
+    # print(f"2. y_pred {y_pred.shape}, y_true {y_true.shape}")
+    return F.cross_entropy(y_pred, y_true, ignore_index=mask_index)
+
+
+def compute_accuracy(y_pred, y_true, mask_index):
+    y_pred, y_true = normalize_sizes(y_pred, y_true)
+
+    _, y_pred_indices = y_pred.max(dim=1)
+    
+    correct_indices = torch.eq(y_pred_indices, y_true).float()
+    valid_indices = torch.ne(y_true, mask_index).float()
+    
+    n_correct = (correct_indices * valid_indices).sum().item()
+    n_valid = valid_indices.sum().item()
+
+    return n_correct / n_valid * 100
+
+
+def sample_from_model(model, vectorizer, num_samples=1, sample_size=20, temperature=1.0):
+    vocab = vectorizer.get_vocabulary()
+    begin_seq_index = [vocab.begin_seq_index 
+                       for _ in range(num_samples)]
+    begin_seq_index = torch.tensor(begin_seq_index, 
+                                   dtype=torch.int64).unsqueeze(dim=1)
+    indices = [begin_seq_index]
+    h_t = None
+    for time_step in range(sample_size):
+        x_t = indices[time_step]
+        probability_vector = model.sample(x_t, h_t, temperature)
+        picked_indices = torch.multinomial(probability_vector, num_samples=1)
+        indices.append(picked_indices)
+    indices = torch.stack(indices).squeeze().permute(1, 0)
+    return indices
+
+
+def decode_samples(sampled_indices, vectorizer):
+    decoded_annotations = []
+    vocab = vectorizer.get_vocabulary()
+    
+    for sample_index in range(sampled_indices.shape[0]):
+        generated_annotation = ""
+        for time_step in range(sampled_indices.shape[1]):
+            sample_item = sampled_indices[sample_index, time_step].item()
+            if sample_item == vocab.begin_seq_index or sample_item == vocab.unk_index:
+                continue
+            elif sample_item == vocab.end_seq_index:
+                break
+            else:
+                generated_annotation += vocab.lookup_index(sample_item)
+        decoded_annotations.append(generated_annotation)
+    return decoded_annotations
+
+
+def train_on_batches(dataset, model, optimizer, mask_index, args):
+    dataset.set_split('train')
+    batch_generator = generate_batches(dataset, 
+                                        batch_size=args.batch_size, 
+                                        device=args.device)
+
+    running_loss, running_acc = 0.0, 0.0
+
+    model.train()
+    for batch_index, batch_dict in enumerate(batch_generator):
+        hidden = model.init_zero_state(args.device, args.batch_size)
+        cell = model.init_zero_state(args.device, args.batch_size)
+
+        # --------------------------------------    
+        # step 1. zero the gradients
+        optimizer.zero_grad()
+
+        # step 2. compute the output
+        y_pred, _ = model(batch_dict['x_data'], (hidden, cell))
+
+        # step 3. compute the loss
+        loss = sequence_loss(y_pred, batch_dict['y_target'], mask_index)
+
+        # step 4. use loss to produce gradients
+        loss.backward()
+
+        # step 5. use optimizer to take gradient step
+        optimizer.step()
+
+        running_loss += (loss.item() - running_loss) / (batch_index + 1)
+        acc_t = compute_accuracy(y_pred, batch_dict['y_target'], mask_index)
+        running_acc += (acc_t - running_acc) / (batch_index + 1)
+
+        if batch_index % args.batch_check_point == 0:
+            print(f"Train: Have processed {batch_index} running_loss {running_loss}, running_acc {running_acc}")
+    
+    return {"train_loss": running_loss, "train_acc": running_acc}
+
+def eval_on_batches(dataset, model, mask_index, args):
+    dataset.set_split('val')
+    batch_generator = generate_batches(dataset, 
+                                        batch_size=args.batch_size, 
+                                        device=args.device)
+    running_loss, running_acc = 0.0, 0.0
+
+    model.eval()
+    for batch_index, batch_dict in enumerate(batch_generator):
+        hidden = model.init_zero_state(args.device, args.batch_size)
+        cell = model.init_zero_state(args.device, args.batch_size)
+
+        # compute the output
+        y_pred, _ = model(batch_dict['x_data'], (hidden, cell))
+
+        # step 3. compute the loss
+        loss = sequence_loss(y_pred, batch_dict['y_target'], mask_index)
+
+        # compute the  running loss and running accuracy
+        running_loss += (loss.item() - running_loss) / (batch_index + 1)
+        acc_t = compute_accuracy(y_pred, batch_dict['y_target'], mask_index)
+        running_acc += (acc_t - running_acc) / (batch_index + 1)
+
+        if batch_index % args.batch_check_point == 0:
+            print(f"Val: Have processed {batch_index} running_loss {running_loss}, running_acc {running_acc}")
+    
+    return {"val_loss": running_loss, "val_acc": running_acc}
+
+
 def train(dataset, saved_model_fname, dataset_fname, args):
     vectorizer = dataset.get_vectorizer()
     vocab = vectorizer.get_vocabulary()
-    vocab_len = len(vocab)
+    vocab_size = len(vocab)
     print(f"Training using device {args.device}")
 
-    model = LSTMAnnotationsLM(vocab_len, args.embedding_dim, args.hidden_dim, vocab_len, args.num_hidden)
+    model = LSTMAnnotationsLM(vocab_size, args.embedding_dim, 
+                              args.hidden_dim, args.num_layers, 
+                              vocab.mask_index)
+
     model = model.to(args.device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
-    start_time = time.time()
-    try:
-        mlflow.start_run()
-        mlflow.log_param("epochs", str(args.epochs))
 
-        for epoch in range(args.epochs):
-            hidden = model.init_zero_state(args.device)
-            cell = model.init_zero_state(args.device)
+    mask_index = vocab.mask_index
 
-            optimizer.zero_grad()
-            loss = 0.
-            inputs, targets = sample_dataset(dataset, args.device)
-            input_length = len(inputs)
-            for c in range(input_length):
-                outputs, (hidden, cell) = model(inputs[c], (hidden, cell))
-                loss += F.cross_entropy(outputs, targets[c].view(1))
-            loss /= input_length
-            loss.backward()
-            optimizer.step()
+    mlflow.start_run()
+    mlflow.log_params(vars(args))
 
-            with torch.set_grad_enabled(False):
-                if epoch % args.epoch_check_point == 0:
-                    mlflow.log_metrics({"epoch": epoch, "loss": loss.item()})
-                    # mlflow.pytorch.log_model(model, saved_model_fname)
-                    # torch.save(model, saved_model_fname)
-                    print(f'Time elapsed: {(time.time() - start_time)/60:.2f} min')
-                    print(f'Epoch {epoch} | Loss {loss.item():.2f}\n\n')
-                    print(evaluate(model, args.device, vectorizer, vocab, args.sample_text_len), '\n')
-                    print(50*'=')
-        save_model(model, args.device, vectorizer, saved_model_fname, dataset_fname)
+    train_ctx = TrainingContext(args)
 
-    finally:
-        mlflow.end_run()
+    for epoch in range(args.epochs):
+        print(f"Starting epoch {epoch}")
 
+        train_metrics = train_on_batches(dataset, model, optimizer, mask_index, args)
+        
+        train_ctx.append_metrics(train_metrics)
+        mlflow.log_metrics(train_metrics)
+
+        val_metrics = eval_on_batches(dataset, model, mask_index, args)
+
+        train_ctx.append_metrics(val_metrics)
+        mlflow.log_metrics(val_metrics)
+
+        train_ctx.update(model, epoch, saved_model_fname)
+
+        samples = sample_from_model(model, vectorizer, num_samples=2)
+        sampled_annotations = decode_samples(samples, vectorizer)
+        print(f"sampled_annotations {sampled_annotations}")
+
+        if train_ctx.stop_early:
+            print(f"Early stopping, best validation loss {train_ctx.early_stopping_best_val}")
+            break
+    
+    mlflow.pytorch.save_model(pytorch_model=model, path=saved_model_fname)
 
 def train_driver(dataset_fname, saved_model_fname, args):
     dataset = AnnotationsDataset.load(dataset_fname)
     train(dataset, saved_model_fname, dataset_fname, args)
-

@@ -3,8 +3,7 @@ import argparse
 import torch
 
 from training.train import train_driver
-from utilities.file_utils import check_rm_dir
-from utilities.file_utils import load_config_params
+from utilities.file_utils import check_rm_dir, check_rm_dirs_like, load_config_params
 
 
 if __name__ == '__main__':
@@ -19,8 +18,7 @@ if __name__ == '__main__':
     model_output_dir = args.model_output_dir
     dataset_file = args.dataset_file
 
-    check_rm_dir(model_output_dir)
-    check_rm_dir(f"{model_output_dir}_wrapper")
+    check_rm_dirs_like(model_output_dir)
 
     params = load_config_params(config_fname)
     params.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

@@ -2,3 +2,5 @@
 **/*.log
 ansible/secrets.yaml
 mlruns
+bitacora.txt
+*.log

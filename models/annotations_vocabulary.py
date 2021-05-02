@@ -2,29 +2,31 @@ class AnnotationsVocabulary():
     START_SEQ = "<begin>"
     END_SEQ = "<end>"
 
-    def __init__(self, token_to_idx=None, add_unk=True, unk_token="<unk>", add_seq_wrap=True):
-        self._add_unk = add_unk
+    def __init__(self, token_to_idx=None, unk_token="<UNK>",
+                 mask_token="<MASK>", begin_seq_token="<BEGIN>",
+                 end_seq_token="<END>"):
+
+        self._mask_token = mask_token
         self._unk_token = unk_token
-        self._add_seq_wrap = add_seq_wrap
+        self._begin_seq_token = begin_seq_token
+        self._end_seq_token = end_seq_token
 
         if not token_to_idx:
             self._token_to_idx = {}
-            self._idx_to_token = {}
-            
-            if self._add_unk:
-                self._unk_index = self.add_token(self._unk_token)
+        
+        self._idx_to_token = {}
 
-            if self._add_seq_wrap:
-                self.begin_seq_index = self.add_token(AnnotationsVocabulary.START_SEQ)
-                self.end_seq_index = self.add_token(AnnotationsVocabulary.END_SEQ)
-        else:
-            self._idx_to_token = {idx:token for token, idx in self._token_to_idx.items()}
+        self.mask_index = self.add_token(self._mask_token)
+        self.unk_index = self.add_token(self._unk_token)
+        self.begin_seq_index = self.add_token(self._begin_seq_token)
+        self.end_seq_index = self.add_token(self._end_seq_token)
 
     def to_serializable(self):
         return {'_token_to_idx': self._token_to_idx,
-                '_add_unk': self._add_unk,
-                '_unk_token': self._unk_token,
-                '_add_seq_wrap': self._add_seq_wrap}
+                'unk_token': self._unk_token,
+                'mask_token':self._mask_token, 
+                'begin_seq_token':self._begin_seq_token,
+                'end_seq_token':self._end_seq_token}
 
     @classmethod
     def from_serializable(cls, contents):
@@ -40,8 +42,8 @@ class AnnotationsVocabulary():
         return idx
 
     def lookup_token(self, token):
-        if self._add_unk:
-            return self._token_to_idx.get(token, self._unk_index)
+        if self.unk_index >= 0:
+            return self._token_to_idx.get(token, self.unk_index)
         else:
             return self._token_to_idx[token]
 
@@ -52,6 +54,3 @@ class AnnotationsVocabulary():
 
     def __len__(self):
         return len(self._token_to_idx)
-
-    def get_unk_token(self):
-        return self._unk_token

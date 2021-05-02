@@ -2,6 +2,8 @@ import string
 import random
 import mlflow
 import torch
+import pandas as pd
+
 from models.annotations_dataset import AnnotationsDataset
 from models.annotations_vectorizer import AnnotationsVectorizer
 from models.lstm_annotations_lm_wrapper import LSTMAnnotationsWrapper
@@ -79,25 +81,23 @@ def verify3(dataset_fname, saved_model_fname):
         "dataset_input_file": dataset_fname
     }
     Context = namedtuple("Context", ["artifacts"])
+    
     lstm_wrapper = LSTMAnnotationsWrapper()
     ctx = Context(artifacts)
     lstm_wrapper.load_context(ctx)
-    vectorizer = AnnotationsVectorizer.from_text(dataset_fname)
+    
+    annotations_df = pd.read_csv(dataset_fname)
+    vectorizer = AnnotationsVectorizer.from_dataframe(annotations_df)
     vocab = vectorizer.get_vocabulary()
 
-    sample_blocks = 10
-    for i in range(sample_blocks):
-        sample_text = "{" + f"\"text\": \"{string.printable[random.randint(10, 61)]}" 
-        # print(evaluate(model, sample_text, TEXT_SAMPLE_LENGTH), '\n')
-        # prime_str = vocab.START_SEQ
-        # prime_input = vectorizer.vectorize(sample_text, wrap=False)
-        # print(f"Model input {prime_input}")
-        print(lstm_wrapper.predict(ctx, sample_text))
+    model_input_param = {"num_samples": 3, "sample_size": 50, "temperature": 1.0}
+
+    print(lstm_wrapper.predict(ctx, model_input_param))
 
 
 if __name__ == "__main__":
-    save_model_dir = "model_artifacts/saved_model_baseline"
-    dataset_fname = "datasets/generated/training/annotations/all_clean_annotations.json"
+    save_model_dir = "model_artifacts/saved_model_local"
+    dataset_fname = "datasets/generated/full/annotations/full_annotations_small.csv"
     # verify2(dataset_fname, save_model_dir)
     verify3(dataset_fname, save_model_dir)
     

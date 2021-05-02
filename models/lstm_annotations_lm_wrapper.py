@@ -3,6 +3,41 @@ import mlflow
 
 from models.annotations_dataset import AnnotationsDataset
 
+def sample_from_model(model, vectorizer, num_samples=1, sample_size=20, temperature=1.0):
+    vocab = vectorizer.get_vocabulary()
+    begin_seq_index = [vocab.begin_seq_index 
+                       for _ in range(num_samples)]
+    begin_seq_index = torch.tensor(begin_seq_index, 
+                                   dtype=torch.int64).unsqueeze(dim=1)
+    indices = [begin_seq_index]
+    h_t = None
+    for time_step in range(sample_size):
+        x_t = indices[time_step]
+        probability_vector = model.sample(x_t, h_t, temperature)
+        picked_indices = torch.multinomial(probability_vector, num_samples=1)
+        indices.append(picked_indices)
+    indices = torch.stack(indices).squeeze().permute(1, 0)
+    return indices
+
+
+def decode_samples(sampled_indices, vectorizer):
+    decoded_annotations = []
+    vocab = vectorizer.get_vocabulary()
+    
+    for sample_index in range(sampled_indices.shape[0]):
+        generated_annotation = ""
+        for time_step in range(sampled_indices.shape[1]):
+            sample_item = sampled_indices[sample_index, time_step].item()
+            if sample_item == vocab.begin_seq_index or sample_item == vocab.unk_index:
+                continue
+            elif sample_item == vocab.end_seq_index:
+                break
+            else:
+                generated_annotation += vocab.lookup_index(sample_item)
+        decoded_annotations.append(generated_annotation)
+    return decoded_annotations
+
+
 class LSTMAnnotationsWrapper(mlflow.pyfunc.PythonModel):
 
     def load_context(self, context):
@@ -21,37 +56,13 @@ class LSTMAnnotationsWrapper(mlflow.pyfunc.PythonModel):
         model, vectorizer, vocab = self.lstm_model, self.vectorizer, self.vocab
         
         device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        predict_len=500
-        temperature=0.6
-
-        predicted = model_input
-        hidden = model.init_zero_state(device)
-        cell = model.init_zero_state(device)
-        prime_input = vectorizer.vectorize(model_input, wrap=False)
-
-        # Use priming string to "build up" hidden state
-        for p in range(len(prime_input) - 1):
-            _, (hidden, cell) = model(prime_input[p].to(device), (hidden.to(device), cell.to(device)))
-        inp = prime_input[-1]
-        # inp = model_input
         
-        for p in range(predict_len):
-            # print(f"evaluate inputs inp {inp.shape} hidden {hidden.shape} cell {cell.shape}")
-            output, (hidden, cell) = model(inp.to(device), (hidden.to(device), cell.to(device)))
-            
-            # Sample from the network as a multinomial distribution
-            output_dist = output.data.view(-1).div(temperature).exp()
-            top_i = torch.multinomial(output_dist, 1)[0]
-            
-            # Add predicted character to string and use as next input
-            predicted_char = vocab.lookup_index(top_i.item())
-            # print(f"predicted_char {predicted_char}")
-            if predicted_char == vocab.get_unk_token():
-                continue
-            if predicted_char == vocab.END_SEQ or predicted_char == vocab.START_SEQ:
-                break
-            predicted += predicted_char
-            inp = vectorizer.vectorize(predicted_char, wrap=False)
-        
-        # print(f"finally predicted  {predicted}")
-        return predicted
+        num_samples = model_input['num_samples']
+        sample_size = model_input['sample_size']
+        temperature = model_input['temperature']
+
+        samples = sample_from_model(model, vectorizer, num_samples, sample_size, temperature)
+        sampled_annotations = decode_samples(samples, vectorizer)
+        print(f"sampled_annotations {sampled_annotations}")
+
+        return sampled_annotations
