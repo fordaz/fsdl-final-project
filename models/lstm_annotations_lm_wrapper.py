@@ -3,7 +3,7 @@ import mlflow
 
 from models.annotations_dataset import AnnotationsDataset
 
-def sample_from_model(model, vectorizer, num_samples=1, sample_size=20, temperature=1.0):
+def sample_from_model(model, vectorizer, num_samples, sample_size, temperature):
     vocab = vectorizer.get_vocabulary()
     begin_seq_index = [vocab.begin_seq_index 
                        for _ in range(num_samples)]
@@ -56,12 +56,17 @@ class LSTMAnnotationsWrapper(mlflow.pyfunc.PythonModel):
         model, vectorizer, vocab = self.lstm_model, self.vectorizer, self.vocab
         
         device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        
-        num_samples = model_input['num_samples']
-        sample_size = model_input['sample_size']
-        temperature = model_input['temperature']
 
-        samples = sample_from_model(model, vectorizer, num_samples, sample_size, temperature)
+        # print(model_input.head())
+        print(model_input.dtypes)
+        
+        row = model_input.iloc[0]
+
+        num_samples = row.num_samples
+        sample_size = row.sample_size
+        temperature = row.temperature
+
+        samples = sample_from_model(model, vectorizer, int(num_samples), int(sample_size), temperature)
         sampled_annotations = decode_samples(samples, vectorizer)
         print(f"sampled_annotations {sampled_annotations}")
 

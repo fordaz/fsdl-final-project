@@ -1,8 +1,6 @@
 import time
 from argparse import Namespace
 import random
-import cloudpickle
-from sys import version_info
 
 import numpy as np
 
@@ -18,17 +16,11 @@ import mlflow.pyfunc
 
 from models.annotations_dataset import AnnotationsDataset
 from models.lstm_annotations_lm import LSTMAnnotationsLM
-from models.lstm_annotations_lm_wrapper import LSTMAnnotationsWrapper
 from training.training_context import TrainingContext
 
 RANDOM_SEED = 123
 torch.manual_seed(RANDOM_SEED)
 random.seed(RANDOM_SEED)
-
-PYTHON_VERSION = "{major}.{minor}.{micro}".format(major=version_info.major,
-                                                  minor=version_info.minor,
-                                                  micro=version_info.micro)
-
 
 def generate_batches(dataset, batch_size, shuffle=False,
                      drop_last=True, device="cpu"): 
@@ -78,37 +70,6 @@ def evaluate(model, device, vectorizer, vocab, predict_len=100, temperature=0.8)
         inp = vectorizer.vectorize(predicted_char, wrap=False)
 
     return predicted
-
-
-def save_model(model, device, vectorizer, saved_model_fname, dataset_fname):
-    mlflow.pytorch.save_model(pytorch_model=model, path=saved_model_fname)
-
-    artifacts = {
-        "pytorch_model": saved_model_fname,
-        "dataset_input_file": dataset_fname
-    }
-
-    conda_env = {
-        'channels': ['defaults', 'conda-forge', 'pytorch'],
-        'dependencies': [
-            'python={}'.format(PYTHON_VERSION),
-            "pytorch=1.8.1",
-            "torchvision=0.9.1",
-            'pip',
-            {
-                'pip': [
-                    'mlflow',
-                    'cloudpickle=={}'.format(cloudpickle.__version__),
-                ],
-            },
-        ],
-        'name': 'mlflow-env-wrapper'
-    }
-
-    mlflow_pyfunc_model_fname = f"{saved_model_fname}_wrapper"
-    mlflow.pyfunc.save_model(path=mlflow_pyfunc_model_fname, code_path=["training", "models"],
-                             python_model=LSTMAnnotationsWrapper(), 
-                             artifacts=artifacts, conda_env=conda_env)
 
 
 def normalize_sizes(y_pred, y_true):

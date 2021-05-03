@@ -14,7 +14,9 @@ print("Endpoint status: ", endpoint["EndpointStatus"])
 
 test_data = pd.DataFrame(
     {
-        "input": ["abc"]
+        "num_samples": [3],
+        "sample_size": [20],
+        "temperature": [1.0]
     }
 )
 
