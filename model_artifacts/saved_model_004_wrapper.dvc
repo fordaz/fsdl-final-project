@@ -1,5 +1,0 @@
-outs:
-- md5: 52b2b41db005fd5c502b3edf3388ec02.dir
-  size: 1656018
-  nfiles: 23
-  path: saved_model_004_wrapper

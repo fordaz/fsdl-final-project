@@ -2,40 +2,7 @@ import torch
 import mlflow
 
 from models.annotations_dataset import AnnotationsDataset
-
-def sample_from_model(model, vectorizer, num_samples, sample_size, temperature):
-    vocab = vectorizer.get_vocabulary()
-    begin_seq_index = [vocab.begin_seq_index 
-                       for _ in range(num_samples)]
-    begin_seq_index = torch.tensor(begin_seq_index, 
-                                   dtype=torch.int64).unsqueeze(dim=1)
-    indices = [begin_seq_index]
-    h_t = None
-    for time_step in range(sample_size):
-        x_t = indices[time_step]
-        probability_vector = model.sample(x_t, h_t, temperature)
-        picked_indices = torch.multinomial(probability_vector, num_samples=1)
-        indices.append(picked_indices)
-    indices = torch.stack(indices).squeeze().permute(1, 0)
-    return indices
-
-
-def decode_samples(sampled_indices, vectorizer):
-    decoded_annotations = []
-    vocab = vectorizer.get_vocabulary()
-    
-    for sample_index in range(sampled_indices.shape[0]):
-        generated_annotation = ""
-        for time_step in range(sampled_indices.shape[1]):
-            sample_item = sampled_indices[sample_index, time_step].item()
-            if sample_item == vocab.begin_seq_index or sample_item == vocab.unk_index:
-                continue
-            elif sample_item == vocab.end_seq_index:
-                break
-            else:
-                generated_annotation += vocab.lookup_index(sample_item)
-        decoded_annotations.append(generated_annotation)
-    return decoded_annotations
+from models.lstm_model_sampling import sample_from_model, decode_samples
 
 
 class LSTMAnnotationsWrapper(mlflow.pyfunc.PythonModel):
@@ -54,20 +21,15 @@ class LSTMAnnotationsWrapper(mlflow.pyfunc.PythonModel):
     def predict(self, context, model_input):
         print(f"Getting model inputs {model_input} type {type(model_input)}")
         model, vectorizer, vocab = self.lstm_model, self.vectorizer, self.vocab
-        
-        device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-        # print(model_input.head())
-        print(model_input.dtypes)
-        
         row = model_input.iloc[0]
 
-        num_samples = row.num_samples
-        sample_size = row.sample_size
-        temperature = row.temperature
+        num_samples, sample_size, temperature = int(row.num_samples), int(row.sample_size), row.temperature
 
-        samples = sample_from_model(model, vectorizer, int(num_samples), int(sample_size), temperature)
+        samples = sample_from_model(model, vectorizer, num_samples, sample_size, temperature)
+        
         sampled_annotations = decode_samples(samples, vectorizer)
+        
         print(f"sampled_annotations {sampled_annotations}")
 
         return sampled_annotations

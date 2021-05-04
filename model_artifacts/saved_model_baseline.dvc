@@ -1,5 +1,0 @@
-outs:
-- md5: 77f35113abe1e4658c071a44ba0142d2.dir
-  size: 775762
-  nfiles: 4
-  path: saved_model_baseline
