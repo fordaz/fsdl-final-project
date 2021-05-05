@@ -6,13 +6,13 @@ def sample_from_model(model, vectorizer, device, num_samples=1, sample_size=20, 
                        for _ in range(num_samples)]
     begin_seq_index = torch.tensor(begin_seq_index, 
                                    dtype=torch.int64).unsqueeze(dim=1)
-    indices = [begin_seq_index]
+    indices = [begin_seq_index.to(device)]
     h_t = None
     for time_step in range(sample_size):
         x_t = indices[time_step]
         probability_vector = model.sample(x_t.to(device), h_t, temperature)
         picked_indices = torch.multinomial(probability_vector, num_samples=1)
-        indices.append(picked_indices)
+        indices.append(picked_indices.to(device))
     indices = torch.stack(indices).squeeze().permute(1, 0)
     return indices
 
