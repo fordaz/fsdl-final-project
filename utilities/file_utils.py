@@ -7,6 +7,7 @@ try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
     from yaml import Loader, Dumper
+from pathlib import Path
 
 def load_json(full_fname):
     with open(full_fname, "r") as input_file:
@@ -14,8 +15,8 @@ def load_json(full_fname):
         return json.loads(raw_json)
 
 
-def load_json(base_dir, fname):
-    return load_json(os.path.join(base_dir, fname))
+# def load_json(base_dir, fname):
+#     return load_json(os.path.join(base_dir, fname))
 
 
 def check_mkdir(dir_name):
@@ -26,6 +27,14 @@ def check_mkdir(dir_name):
 def check_rm_dir(dir_name):
     if os.path.exists(dir_name):
         shutil.rmtree(dir_name)
+
+
+def check_rm_dirs_like(dir_name):
+    path = Path(dir_name)
+    path_parent = path.parent
+    for dir_like in path_parent.glob(f"*{path.parts[-1]}*"):
+        if os.path.exists(dir_like):
+            shutil.rmtree(dir_like)
 
 
 def save_by_line(body, base_output_dir, out_fname):

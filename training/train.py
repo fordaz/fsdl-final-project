@@ -1,8 +1,6 @@
 import time
 from argparse import Namespace
 import random
-import cloudpickle
-from sys import version_info
 
 import numpy as np
 
@@ -18,135 +16,138 @@ import mlflow.pyfunc
 
 from models.annotations_dataset import AnnotationsDataset
 from models.lstm_annotations_lm import LSTMAnnotationsLM
-from models.lstm_annotations_lm_wrapper import LSTMAnnotationsWrapper
-
-RANDOM_SEED = 123
-torch.manual_seed(RANDOM_SEED)
-random.seed(RANDOM_SEED)
-
-PYTHON_VERSION = "{major}.{minor}.{micro}".format(major=version_info.major,
-                                                  minor=version_info.minor,
-                                                  micro=version_info.micro)
-
-def sample_dataset(dataset, device):
-    idx = random.randint(0, len(dataset)-1)
-    inputs = dataset[idx]
-    inputs = torch.squeeze(inputs)
-    inputs, targets = inputs[:-1], inputs[1:]
-    return inputs.to(device), targets.to(device)
-
-
-def evaluate(model, device, vectorizer, vocab, predict_len=100, temperature=0.8):
-    ## based on https://github.com/spro/practical-pytorch/
-    ## blob/master/char-rnn-generation/char-rnn-generation.ipynb
-
-    prime_str = vocab.START_SEQ
-    hidden = model.init_zero_state(device)
-    cell = model.init_zero_state(device)
-    prime_input = vectorizer.vectorize(prime_str, wrap=False)
-    predicted = prime_str
-
-    # Use priming string to "build up" hidden state
-    for p in range(len(prime_str) - 1):
-        _, (hidden, cell) = model(prime_input[p].to(device), (hidden.to(device), cell.to(device)))
-    inp = prime_input[-1]
-    
-    for p in range(predict_len):
-        output, (hidden, cell) = model(inp.to(device), (hidden.to(device), cell.to(device)))
-        
-        # Sample from the network as a multinomial distribution
-        output_dist = output.data.view(-1).div(temperature).exp()
-        top_i = torch.multinomial(output_dist, 1)[0]
-        
-        # Add predicted character to string and use as next input
-        predicted_char = vocab.lookup_index(top_i.item())
-        if predicted_char == vocab.get_unk_token():
-            continue
-        if predicted_char == vocab.END_SEQ or predicted_char == vocab.START_SEQ:
-            break
-        predicted += predicted_char
-        inp = vectorizer.vectorize(predicted_char, wrap=False)
-
-    return predicted
-
-
-def save_model(model, device, vectorizer, saved_model_fname, dataset_fname):
-    mlflow.pytorch.save_model(pytorch_model=model, path=saved_model_fname)
-
-    artifacts = {
-        "pytorch_model": saved_model_fname,
-        "dataset_input_file": dataset_fname
-    }
-
-    conda_env = {
-        'channels': ['defaults', 'conda-forge', 'pytorch'],
-        'dependencies': [
-            'python={}'.format(PYTHON_VERSION),
-            "pytorch=1.8.1",
-            "torchvision=0.9.1",
-            'pip',
-            {
-                'pip': [
-                    'mlflow',
-                    'cloudpickle=={}'.format(cloudpickle.__version__),
-                ],
-            },
-        ],
-        'name': 'mlflow-env-wrapper'
-    }
-
-    mlflow_pyfunc_model_fname = f"{saved_model_fname}_wrapper"
-    mlflow.pyfunc.save_model(path=mlflow_pyfunc_model_fname, code_path=["training", "models"],
-                             python_model=LSTMAnnotationsWrapper(), 
-                             artifacts=artifacts, conda_env=conda_env)
-
-
-def train(dataset, saved_model_fname, dataset_fname, args):
-    vectorizer = dataset.get_vectorizer()
-    vocab = vectorizer.get_vocabulary()
-    vocab_len = len(vocab)
-    print(f"Training using device {args.device}")
-
-    model = LSTMAnnotationsLM(vocab_len, args.embedding_dim, args.hidden_dim, vocab_len, args.num_hidden)
-    model = model.to(args.device)
-
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
-    start_time = time.time()
-    try:
-        mlflow.start_run()
-        mlflow.log_param("epochs", str(args.epochs))
-
-        for epoch in range(args.epochs):
-            hidden = model.init_zero_state(args.device)
-            cell = model.init_zero_state(args.device)
-
-            optimizer.zero_grad()
-            loss = 0.
-            inputs, targets = sample_dataset(dataset, args.device)
-            input_length = len(inputs)
-            for c in range(input_length):
-                outputs, (hidden, cell) = model(inputs[c], (hidden, cell))
-                loss += F.cross_entropy(outputs, targets[c].view(1))
-            loss /= input_length
-            loss.backward()
-            optimizer.step()
-
-            with torch.set_grad_enabled(False):
-                if epoch % args.epoch_check_point == 0:
-                    mlflow.log_metrics({"epoch": epoch, "loss": loss.item()})
-                    # mlflow.pytorch.log_model(model, saved_model_fname)
-                    # torch.save(model, saved_model_fname)
-                    print(f'Time elapsed: {(time.time() - start_time)/60:.2f} min')
-                    print(f'Epoch {epoch} | Loss {loss.item():.2f}\n\n')
-                    print(evaluate(model, args.device, vectorizer, vocab, args.sample_text_len), '\n')
-                    print(50*'=')
-        save_model(model, args.device, vectorizer, saved_model_fname, dataset_fname)
-
-    finally:
-        mlflow.end_run()
+from training.training_context import TrainingContext
+from training.train_utils import (generate_batches, 
+                                  normalize_sizes, 
+                                  sequence_loss, 
+                                  compute_accuracy, 
+                                  set_seed)
+from models.lstm_model_sampling import sample_model
 
 
 def train_driver(dataset_fname, saved_model_fname, args):
     dataset = AnnotationsDataset.load(dataset_fname)
     train(dataset, saved_model_fname, dataset_fname, args)
+
+
+def train(dataset, saved_model_fname, dataset_fname, args):
+    set_seed(args.seed)
+
+    vectorizer = dataset.get_vectorizer()
+    vocab = vectorizer.get_vocabulary()
+    vocab_size = len(vocab)
+    print(f"Training using device {args.device}")
+
+    model = LSTMAnnotationsLM(vocab_size, args.embedding_dim, 
+                              args.hidden_dim, args.num_layers, 
+                              vocab.mask_index)
+
+    model = model.to(args.device)
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
+
+    mask_index = vocab.mask_index
+
+    try:
+        mlflow.start_run()
+        mlflow.log_params(vars(args))
+
+        train_ctx = TrainingContext(args)
+
+        for epoch in range(args.epochs):
+            print(f"Starting epoch {epoch}")
+
+            train_metrics = train_on_batches(dataset, model, optimizer, mask_index, args)
+            
+            train_ctx.append_metrics(train_metrics)
+            mlflow.log_metrics(train_metrics)
+
+            val_metrics = test_on_batches("val", dataset, model, mask_index, args)
+
+            train_ctx.append_metrics(val_metrics)
+            mlflow.log_metrics(val_metrics)
+
+            train_ctx.update(model, epoch, saved_model_fname)
+
+            sampled_annotations = sample_model(model, vectorizer)
+            print(f"sampled_annotations {sampled_annotations}")
+
+            if train_ctx.stop_early:
+                print(f"Early stopping, best validation loss {train_ctx.early_stopping_best_val}")
+                break
+
+        test_metrics = test_on_batches("test", dataset, model, mask_index, args)
+
+        train_ctx.append_metrics(test_metrics)
+        mlflow.log_metrics(test_metrics)
+
+        mlflow.pytorch.save_model(pytorch_model=model, path=saved_model_fname)
+    except Exception as e:
+        print(f"Unexpected exception while training {e}")
+    finally:
+        mlflow.end_run()
+
+
+def train_on_batches(dataset, model, optimizer, mask_index, args):
+    dataset.set_split('train')
+    batch_generator = generate_batches(dataset, 
+                                        batch_size=args.batch_size, 
+                                        device=args.device)
+
+    running_loss, running_acc = 0.0, 0.0
+
+    model.train()
+    for batch_index, batch_dict in enumerate(batch_generator):
+        hidden = model.init_zero_state(args.device, args.batch_size)
+        cell = model.init_zero_state(args.device, args.batch_size)
+
+        optimizer.zero_grad()
+
+        y_pred, _ = model(batch_dict['x_data'], (hidden, cell))
+
+        loss = sequence_loss(y_pred, batch_dict['y_target'], mask_index)
+
+        loss.backward()
+
+        optimizer.step()
+
+        running_loss += (loss.item() - running_loss) / (batch_index + 1)
+
+        acc_t = compute_accuracy(y_pred, batch_dict['y_target'], mask_index)
+        running_acc += (acc_t - running_acc) / (batch_index + 1)
+
+        if batch_index % args.batch_check_point == 0:
+            print(f"train: Have processed {batch_index} running_loss {running_loss}, running_acc {running_acc}")
+    
+    return {"train_loss": running_loss, "train_acc": running_acc}
+
+
+def test_on_batches(test_type, dataset, model, mask_index, args):
+    dataset.set_split(test_type)
+    batch_generator = generate_batches(dataset, 
+                                        batch_size=args.batch_size, 
+                                        device=args.device)
+    running_loss, running_acc = 0.0, 0.0
+
+    model.eval()
+    for batch_index, batch_dict in enumerate(batch_generator):
+        hidden = model.init_zero_state(args.device, args.batch_size)
+        cell = model.init_zero_state(args.device, args.batch_size)
+
+        y_pred, _ = model(batch_dict['x_data'], (hidden, cell))
+
+        loss = sequence_loss(y_pred, batch_dict['y_target'], mask_index)
+
+        running_loss += (loss.item() - running_loss) / (batch_index + 1)
+
+        acc_t = compute_accuracy(y_pred, batch_dict['y_target'], mask_index)
+        running_acc += (acc_t - running_acc) / (batch_index + 1)
+
+        if batch_index % args.batch_check_point == 0:
+            print(f"{test_type}: Have processed {batch_index} running_loss {running_loss}, running_acc {running_acc}")
+    
+    return {f"{test_type}_loss": running_loss, f"{test_type}_acc": running_acc}
+
+
+
 

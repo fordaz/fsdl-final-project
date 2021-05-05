@@ -4,29 +4,48 @@ from torch.utils.data import Dataset
 import pandas as pd
 
 class AnnotationsDataset(Dataset):
-    def __init__(self, annotations, vectorizer):
-        self._annotations = annotations
+    def __init__(self, annotations_df, vectorizer):
+
+        self.annotations_df = annotations_df 
         self._vectorizer = vectorizer
-        self._annotations_len = len(self._annotations)
+
+        self._max_seq_length = max(map(len, self.annotations_df.annotation)) + 2
+
+        self.train_df = self.annotations_df[self.annotations_df.split=='train']
+        self.train_size = len(self.train_df)
+
+        self.val_df = self.annotations_df[self.annotations_df.split=='val']
+        self.validation_size = len(self.val_df)
+
+        self.test_df = self.annotations_df[self.annotations_df.split=='test']
+        self.test_size = len(self.test_df)
+
+        self._lookup_dict = {'train': (self.train_df, self.train_size), 
+                             'val': (self.val_df, self.validation_size), 
+                             'test': (self.test_df, self.test_size)}
+
+        self.set_split('train')
 
     @classmethod
     def load(cls, input_fname):
-        with open(input_fname, 'r') as f:
-            annotations = f.readlines()
-        return cls(annotations, AnnotationsVectorizer.from_text(annotations))
+        annotations_df = pd.read_csv(input_fname)
+        return cls(annotations_df, AnnotationsVectorizer.from_dataframe(annotations_df))
+
+    def set_split(self, split="train"):
+        self._target_split = split
+        self._target_df, self._target_size = self._lookup_dict[split]
 
     def __len__(self):
-        return self._annotations_len
+        return self._target_size
 
     def __getitem__(self, index):
-        annotation = self._annotations[index]
-        print(f"Random annotation {annotation}")
-        vect_annotation = self._vectorizer.vectorize(annotation)
-        print(f"Random vectorized annotation {vect_annotation}")
-        return vect_annotation
+        row = self._target_df.iloc[index]
+        from_vector, to_vector = self._vectorizer.vectorize(row.annotation, self._max_seq_length)
+        return {'x_data': from_vector, 
+                'y_target': to_vector}
 
     def get_num_batches(self, batch_size):
-        return self._annotations_len // batch_size
+        return self._target_size // batch_size
 
     def get_vectorizer(self):
         return self._vectorizer
