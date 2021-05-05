@@ -1,6 +1,7 @@
 import time
 from argparse import Namespace
 import random
+import traceback
 
 import numpy as np
 
@@ -83,6 +84,7 @@ def train(dataset, saved_model_fname, dataset_fname, args):
 
         mlflow.pytorch.save_model(pytorch_model=model, path=saved_model_fname)
     except Exception as e:
+        traceback.print_exception(e)
         print(f"Unexpected exception while training {e}")
     finally:
         mlflow.end_run()
