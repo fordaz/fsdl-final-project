@@ -33,7 +33,7 @@ def check_rm_dirs_like(dir_name):
     path = Path(dir_name)
     path_parent = path.parent
     for dir_like in path_parent.glob(f"*{path.parts[-1]}*"):
-        if os.path.exists(dir_like):
+        if os.path.exists(dir_like) and os.path.isdir(dir_like):
             shutil.rmtree(dir_like)
 
 
