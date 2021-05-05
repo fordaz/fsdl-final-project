@@ -1,5 +1,0 @@
-outs:
-- md5: 9665996cedfc9810225382ac6f6d97f4.dir
-  size: 1646116
-  nfiles: 22
-  path: saved_model_baseline_wrapper
