@@ -70,7 +70,7 @@ def train(dataset, saved_model_fname, dataset_fname, args):
 
             train_ctx.update(model, epoch, saved_model_fname)
 
-            sampled_annotations = sample_model(model, vectorizer)
+            sampled_annotations = sample_model(model, vectorizer, args.device)
             print(f"sampled_annotations {sampled_annotations}")
 
             if train_ctx.stop_early:

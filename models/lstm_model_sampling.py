@@ -1,6 +1,6 @@
 import torch
 
-def sample_from_model(model, vectorizer, num_samples=1, sample_size=20, temperature=1.0):
+def sample_from_model(model, vectorizer, device, num_samples=1, sample_size=20, temperature=1.0):
     vocab = vectorizer.get_vocabulary()
     begin_seq_index = [vocab.begin_seq_index 
                        for _ in range(num_samples)]
@@ -10,7 +10,7 @@ def sample_from_model(model, vectorizer, num_samples=1, sample_size=20, temperat
     h_t = None
     for time_step in range(sample_size):
         x_t = indices[time_step]
-        probability_vector = model.sample(x_t, h_t, temperature)
+        probability_vector = model.sample(x_t.to(device), h_t, temperature)
         picked_indices = torch.multinomial(probability_vector, num_samples=1)
         indices.append(picked_indices)
     indices = torch.stack(indices).squeeze().permute(1, 0)
@@ -35,6 +35,6 @@ def decode_samples(sampled_indices, vectorizer):
     return decoded_annotations
 
 
-def sample_model(model, vectorizer, num_samples=2):
-    samples = sample_from_model(model, vectorizer, num_samples=num_samples)
+def sample_model(model, vectorizer, device, num_samples=2):
+    samples = sample_from_model(model, vectorizer, device, num_samples=num_samples)
     return decode_samples(samples, vectorizer)
