@@ -2,6 +2,10 @@ import torch
 import torch.nn.functional as F
 
 class LSTMAnnotationsLM(torch.nn.Module):
+    """
+    This is an adaptation of the source code of the book (Chapter 7): 
+    Natural Language Processing with PyTorch, by Delip Rao and Brian McMahan
+    """
     def __init__(self, vocab_size, embed_size, hidden_size, num_layers, padding_idx, batch_first=True, dropout_p=0.5):
         super(LSTMAnnotationsLM, self).__init__()
 

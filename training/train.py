@@ -32,6 +32,10 @@ def train_driver(dataset_fname, saved_model_fname, args):
 
 
 def train(dataset, saved_model_fname, dataset_fname, args):
+    """
+    This is an adaptation of the source code of the book (Chapter 7): 
+    Natural Language Processing with PyTorch, by Delip Rao and Brian McMahan
+    """
     set_seed(args.seed)
 
     vectorizer = dataset.get_vectorizer()

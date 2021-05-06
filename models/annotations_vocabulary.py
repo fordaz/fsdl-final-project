@@ -1,4 +1,8 @@
 class AnnotationsVocabulary():
+    """
+    This is an adaptation of the source code of the book (Chapter 7): 
+    Natural Language Processing with PyTorch, by Delip Rao and Brian McMahan
+    """
     START_SEQ = "<begin>"
     END_SEQ = "<end>"
 

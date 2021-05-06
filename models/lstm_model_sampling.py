@@ -1,5 +1,10 @@
 import torch
 
+"""
+This is an adaptation of the source code of the book (Chapter 7): 
+Natural Language Processing with PyTorch, by Delip Rao and Brian McMahan
+"""
+
 def sample_from_model(model, vectorizer, device, num_samples=1, sample_size=20, temperature=1.0):
     vocab = vectorizer.get_vocabulary()
     begin_seq_index = [vocab.begin_seq_index 

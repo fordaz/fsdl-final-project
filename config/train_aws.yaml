@@ -2,13 +2,13 @@ embedding_dim: 100
 hidden_dim: 100
 num_layers: 1
 batch_size: 32
-learning_rate: 0.005
-epochs: 3
-epoch_check_point: 1
-batch_check_point: 20
+learning_rate: 0.001
+epochs: 1000
+epoch_check_point: 100
+batch_check_point: 50
 sample_text_len: 500
 early_stopping_criteria: 5
-seed: 123
+seed: 1337
 
 
 

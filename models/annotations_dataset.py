@@ -4,6 +4,10 @@ from torch.utils.data import Dataset
 import pandas as pd
 
 class AnnotationsDataset(Dataset):
+    """
+    This is an adaptation of the source code of the book (Chapter 7): 
+    Natural Language Processing with PyTorch, by Delip Rao and Brian McMahan
+    """
     def __init__(self, annotations_df, vectorizer):
 
         self.annotations_df = annotations_df 

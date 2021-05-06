@@ -1,0 +1,1 @@
+mlflow sagemaker run-local -m model_artifacts/saved_model_baseline_wrapper 
