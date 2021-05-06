@@ -6,7 +6,7 @@
     model_name: saved_model_baseline
     model_output_dir: model_artifacts/{{model_name}}
     model_wrapper_output_dir: model_artifacts/{{model_name}}_wrapper
-    dataset_file: datasets/generated/full/annotations/full_annotations_small.csv
+    dataset_file: datasets/generated/full/annotations/full_annotations.csv
     config_file: config/train_aws.yaml
   vars_files:
     - secrets.yaml
