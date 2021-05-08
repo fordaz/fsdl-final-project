@@ -30,7 +30,7 @@ class LSTMAnnotationsLM(torch.nn.Module):
         # print(f"1. Forward {features.shape}")
         embeddings = self.embed(features)
 
-        # print(f"2. Forward {embeddings.shape}")
+        # print(f"2. Forward {embeddings.shape} {hidden_and_cell[0].shape} {hidden_and_cell[1].shape}")
         output, (hidden, cell) = self.lstm(embeddings, hidden_and_cell)
 
         batch_size, seq_size, feat_size = output.shape
@@ -52,4 +52,4 @@ class LSTMAnnotationsLM(torch.nn.Module):
         embeddings = self.embed(features)
         rnn_out_t, h_t = self.lstm(embeddings, hidden_and_cell)
         prediction_vector = self.fc(rnn_out_t.squeeze(dim=1))
-        return F.softmax(prediction_vector / temperature, dim=1)
+        return F.softmax(prediction_vector / temperature, dim=1), h_t

@@ -16,7 +16,6 @@ from mlflow.types.schema import Schema, TensorSpec
 import mlflow.pyfunc
 
 from models.annotations_dataset import AnnotationsDataset
-from models.lstm_annotations_lm import LSTMAnnotationsLM
 from models.gru_annotations_lm import GRUAnnotationsLM
 from training.training_context import TrainingContext
 from training.train_utils import (generate_batches, 
@@ -24,7 +23,7 @@ from training.train_utils import (generate_batches,
                                   sequence_loss, 
                                   compute_accuracy, 
                                   set_seed)
-from models.lstm_model_sampling import sample_model
+from models.gru_model_sampling import sample_model
 
 
 def train_driver(dataset_fname, saved_model_fname, args):
@@ -45,10 +44,6 @@ def train(dataset, saved_model_fname, dataset_fname, args):
     mask_index = vocab.mask_index
 
     print(f"Training using device {args.device}")
-
-    # model = LSTMAnnotationsLM(vocab_size, args.embedding_dim, 
-    #                           args.hidden_dim, args.num_layers, 
-    #                           mask_index)
 
     model = GRUAnnotationsLM(vocab_size, args.embedding_dim, 
                              args.hidden_dim, mask_index)
@@ -78,6 +73,7 @@ def train(dataset, saved_model_fname, dataset_fname, args):
 
             train_ctx.update(model, epoch, saved_model_fname)
 
+            # sampled_annotations = sample_from_model(model, vectorizer, args.device)
             sampled_annotations = sample_model(model, vectorizer, args.device)
             print(f"sampled_annotations {sampled_annotations}")
 
@@ -108,12 +104,9 @@ def train_on_batches(dataset, model, optimizer, mask_index, args):
 
     model.train()
     for batch_index, batch_dict in enumerate(batch_generator):
-        hidden = model.init_zero_state(args.device, args.batch_size)
-        cell = model.init_zero_state(args.device, args.batch_size)
-
         optimizer.zero_grad()
 
-        y_pred, _ = model(batch_dict['x_data'], (hidden, cell))
+        y_pred = model(batch_dict['x_data'])
 
         loss = sequence_loss(y_pred, batch_dict['y_target'], mask_index)
 
@@ -141,10 +134,7 @@ def test_on_batches(test_type, dataset, model, mask_index, args):
 
     model.eval()
     for batch_index, batch_dict in enumerate(batch_generator):
-        hidden = model.init_zero_state(args.device, args.batch_size)
-        cell = model.init_zero_state(args.device, args.batch_size)
-
-        y_pred, _ = model(batch_dict['x_data'], (hidden, cell))
+        y_pred = model(batch_dict['x_data'])
 
         loss = sequence_loss(y_pred, batch_dict['y_target'], mask_index)
 

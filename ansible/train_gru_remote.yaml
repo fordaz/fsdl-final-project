@@ -3,7 +3,7 @@
   hosts: all
   remote_user: ec2-user
   vars:
-    model_name: saved_model_baseline
+    model_name: saved_gru_model_baseline
     model_output_dir: model_artifacts/{{model_name}}
     model_wrapper_output_dir: model_artifacts/{{model_name}}_wrapper
     dataset_file: datasets/generated/full/annotations/full_annotations.csv
@@ -43,7 +43,7 @@
       update: yes
       force: true
   - name: Change working dir run the train wrapper
-    shell: ./scripts/train_model.sh {{config_file}} {{model_output_dir}} {{dataset_file}} > train_model.log 2>&1
+    shell: ./scripts/train_gru_model_aws.sh {{config_file}} {{model_output_dir}} {{dataset_file}} > train_model.log 2>&1
     args:
       chdir: /home/ec2-user/workspace/fsdl-final-project
     environment:

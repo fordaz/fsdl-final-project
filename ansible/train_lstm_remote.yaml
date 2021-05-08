@@ -1,0 +1,55 @@
+---
+- name: update web servers
+  hosts: all
+  remote_user: ec2-user
+  vars:
+    model_name: saved_model_baseline
+    model_output_dir: model_artifacts/{{model_name}}
+    model_wrapper_output_dir: model_artifacts/{{model_name}}_wrapper
+    dataset_file: datasets/generated/full/annotations/full_annotations.csv
+    config_file: config/train_aws.yaml
+  vars_files:
+    - secrets.yaml
+  tasks:
+  - name: Creates .aws directory
+    file:
+      path: /home/ec2-user/.aws
+      state: directory
+  - name: Copy aws credentials
+    copy:
+      src: /Users/fordaz/.aws/credentials
+      dest: /home/ec2-user/.aws/credentials
+      owner: ec2-user
+      group: ec2-user
+      mode: '0400'
+  - name: Copy aws config
+    copy:
+      src: /Users/fordaz/.aws/config
+      dest: /home/ec2-user/.aws/config
+      owner: ec2-user
+      group: ec2-user
+      mode: '0400'
+  - name: Copy git config
+    copy:
+      src: /Users/fordaz/.gitconfig
+      dest: /home/ec2-user/.gitconfig
+      owner: ec2-user
+      group: ec2-user
+      mode: '0400'
+  - name: Clone project code.
+    git:
+      repo: "https://{{gituser}}:{{gittoken}}@github.com/fordaz/fsdl-final-project.git"
+      dest: "/home/ec2-user/workspace/fsdl-final-project"
+      update: yes
+      force: true
+  - name: Change working dir run the train wrapper
+    shell: ./scripts/train_lstm_model_aws.sh {{config_file}} {{model_output_dir}} {{dataset_file}} > train_model.log 2>&1
+    args:
+      chdir: /home/ec2-user/workspace/fsdl-final-project
+    environment:
+      MLFLOW_TRACKING_URI: postgresql://{{dbuser}}:{{dbpass}}@terraform-20210415031713058400000001.c7anop1qkfor.us-west-2.rds.amazonaws.com/mlflowDbStore
+      PYTHONPATH: /home/ec2-user/workspace/fsdl-final-project
+  - name: Pushing the model
+    shell: ./scripts/push_model.sh {{model_name}} {{model_name}}_wrapper > push_model.log 2>&1
+    args:
+      chdir: /home/ec2-user/workspace/fsdl-final-project

@@ -8,4 +8,4 @@ epoch_check_point: 1
 batch_check_point: 20
 sample_text_len: 500
 early_stopping_criteria: 5
-seed: 123
+seed: 1337

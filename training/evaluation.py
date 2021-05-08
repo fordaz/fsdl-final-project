@@ -8,6 +8,7 @@ from models.annotations_dataset import AnnotationsDataset
 from models.annotations_vectorizer import AnnotationsVectorizer
 from models.lstm_annotations_lm_wrapper import LSTMAnnotationsWrapper
 from collections import namedtuple
+from models.lstm_model_sampling import (sample_from_gru_model, decode_samples)
 
 def evaluate(model, device, vectorizer, vocab, predict_len=100, temperature=0.8):
     ## based on https://github.com/spro/practical-pytorch/
@@ -95,9 +96,30 @@ def verify3(dataset_fname, saved_model_fname):
     print(lstm_wrapper.predict(ctx, model_input_param))
 
 
+def verify_gru(dataset_fname, saved_model_fname):
+    device = torch.device('cpu')
+    kwargs = {"map_location":device}
+    model = mlflow.pytorch.load_model(model_uri=saved_model_fname, **kwargs)
+
+    num_names = 10
+    model = model.cpu()
+
+    annotations_df = pd.read_csv(dataset_fname)
+    vectorizer = AnnotationsVectorizer.from_dataframe(annotations_df)
+
+    sampled_annotation_idxs = sample_from_gru_model(model, vectorizer, device, num_samples=num_names)
+    # Generate nationality hidden state
+    sampled_annotations = decode_samples(sampled_annotation_idxs, vectorizer)
+    # Show results
+    print ("-"*15)
+    for i in range(num_names):
+        print (sampled_annotations[i])
+
+
 if __name__ == "__main__":
     save_model_dir = "model_artifacts/saved_model_local"
-    dataset_fname = "datasets/generated/full/annotations/full_annotations_small.csv"
+    dataset_fname = "datasets/generated/full/annotations/full_annotations.csv"
     # verify2(dataset_fname, save_model_dir)
-    verify3(dataset_fname, save_model_dir)
+    # verify3(dataset_fname, save_model_dir)
+    verify_gru(dataset_fname, save_model_dir)
     

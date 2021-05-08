@@ -31,6 +31,10 @@ class AnnotationsVectorizer():
         
         return from_vector, to_vector
 
+    def vectorize_input(self, annotation):
+        indices = [self._vocab.lookup_token(character) for character in annotation]
+        return torch.tensor(indices).long()
+
     def vectorize_char(self, character):
         return torch.tensor([self._vocab.lookup_token(character)])
 
