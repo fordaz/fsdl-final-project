@@ -1,0 +1,5 @@
+outs:
+- md5: 5d5682415503d0971171d6eeff642201.dir
+  size: 329801
+  nfiles: 4
+  path: saved_gru_model_baseline
