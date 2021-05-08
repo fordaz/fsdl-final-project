@@ -1,1 +1,1 @@
-mlflow models serve -p 5001 -m model_artifacts/saved_model_local_gru_wrapper 
+mlflow models serve -p 5001 -m model_artifacts/saved_gru_model_baseline_wrapper

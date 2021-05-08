@@ -3,9 +3,9 @@ hidden_dim: 100
 num_layers: 1
 batch_size: 32
 learning_rate: 0.001
-epochs: 1
-epoch_check_point: 1
-batch_check_point: 50
+epochs: 300
+epoch_check_point: 20
+batch_check_point: 100
 sample_text_len: 500
 early_stopping_criteria: 5
 seed: 1337

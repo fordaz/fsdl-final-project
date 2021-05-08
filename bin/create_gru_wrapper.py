@@ -34,7 +34,7 @@ def save_model_wrapper(saved_model_fname, dataset_fname):
         'name': 'mlflow-env-wrapper'
     }
 
-    mlflow_pyfunc_model_fname = f"{saved_model_fname}_gru_wrapper"
+    mlflow_pyfunc_model_fname = f"{saved_model_fname}_wrapper"
     mlflow.pyfunc.save_model(path=mlflow_pyfunc_model_fname, code_path=["training", "models"],
                              python_model=GRUAnnotationsWrapper(), 
                              artifacts=artifacts, conda_env=conda_env)
@@ -49,6 +49,6 @@ if __name__ == '__main__':
     model_dir = args.model_dir
     dataset_file = args.dataset_file
 
-    check_rm_dir(f"{model_dir}_gru_wrapper")
+    check_rm_dir(f"{model_dir}_wrapper")
 
     save_model_wrapper(model_dir, dataset_file)
