@@ -15,6 +15,11 @@ def load_json(full_fname):
         return json.loads(raw_json)
 
 
+def save_json(body, out_fname):
+    with open(out_fname, "w") as out_file:
+        out_file.write(json.dumps(body))
+
+
 # def load_json(base_dir, fname):
 #     return load_json(os.path.join(base_dir, fname))
 

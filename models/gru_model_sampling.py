@@ -9,7 +9,7 @@ This is an adaptation of the source code of the book (Chapter 7):
 Natural Language Processing with PyTorch, by Delip Rao and Brian McMahan
 """
 
-def sample_from_model(model, vectorizer, device, num_samples=3, sample_size=50, temperature=1.0):
+def sample_from_gru_model(model, vectorizer, device, num_samples=3, sample_size=200, temperature=1.0):
     vocab = vectorizer.get_vocabulary()
     begin_seq_index = [vocab.begin_seq_index for _ in range(num_samples)]
     begin_seq_index = torch.tensor(begin_seq_index, 
@@ -18,14 +18,12 @@ def sample_from_model(model, vectorizer, device, num_samples=3, sample_size=50, 
     h_t = None
     for time_step in range(sample_size):
         x_t = indices[time_step]
-        probability_vector, h_t = model.sample(x_t, h_t, temperature)
-        # x_emb_t = model.char_emb(x_t)
-        # rnn_out_t, h_t = model.rnn(x_emb_t, h_t)
-        # prediction_vector = model.fc(rnn_out_t.squeeze(dim=1))
-        # probability_vector = F.softmax(prediction_vector / temperature, dim=1)
+        x_emb_t = model.char_emb(x_t)
+        rnn_out_t, h_t = model.rnn(x_emb_t, h_t)
+        prediction_vector = model.fc(rnn_out_t.squeeze(dim=1))
+        probability_vector = F.softmax(prediction_vector / temperature, dim=1)
         indices.append(torch.multinomial(probability_vector, num_samples=1))
-    indices = torch.stack(indices).squeeze().permute(1, 0)
-    return indices
+    return torch.stack(indices).squeeze().permute(1, 0)
 
 
 def decode_samples(sampled_indices, vectorizer):

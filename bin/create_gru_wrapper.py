@@ -4,7 +4,7 @@ import cloudpickle
 
 import mlflow
 
-from models.gru_annotations_lm_wrapper import GRUAnnotationsWrapper
+from serving.gru_annotations_lm_wrapper import GRUAnnotationsWrapper
 from utilities.file_utils import check_rm_dir
 
 PYTHON_VERSION = "{major}.{minor}.{micro}".format(major=version_info.major,
@@ -35,7 +35,7 @@ def save_model_wrapper(saved_model_fname, dataset_fname):
     }
 
     mlflow_pyfunc_model_fname = f"{saved_model_fname}_wrapper"
-    mlflow.pyfunc.save_model(path=mlflow_pyfunc_model_fname, code_path=["training", "models"],
+    mlflow.pyfunc.save_model(path=mlflow_pyfunc_model_fname, code_path=["training", "models", "serving"],
                              python_model=GRUAnnotationsWrapper(), 
                              artifacts=artifacts, conda_env=conda_env)
 
