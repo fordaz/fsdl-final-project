@@ -4,3 +4,4 @@ ansible/secrets.yaml
 mlruns
 bitacora.txt
 *.log
+attic
