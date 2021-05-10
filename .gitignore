@@ -6,3 +6,4 @@ bitacora.txt
 *.log
 attic
 /synthetic
+/tmp
