@@ -1,0 +1,5 @@
+outs:
+- md5: cc47515cc6173d6d0505926b1279cb51.dir
+  size: 162976
+  nfiles: 21
+  path: synthetic

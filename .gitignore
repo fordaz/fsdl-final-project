@@ -5,3 +5,4 @@ mlruns
 bitacora.txt
 *.log
 attic
+/synthetic
