@@ -1,0 +1,5 @@
+outs:
+- md5: 5fc64f6938563e00f5c855c41e5bd88f.dir
+  size: 1743918
+  nfiles: 43
+  path: saved_gru_model_baseline_wrapper
