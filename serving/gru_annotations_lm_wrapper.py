@@ -23,7 +23,6 @@ class GRUAnnotationsWrapper(mlflow.pyfunc.PythonModel):
         self.total_valid_annots = 0
 
     def predict(self, context, model_input):
-        print(f"Getting model inputs {model_input} type {type(model_input)}")
         model, vectorizer, vocab = self.gru_model, self.vectorizer, self.vocab
 
         row = model_input.iloc[0]
@@ -33,6 +32,7 @@ class GRUAnnotationsWrapper(mlflow.pyfunc.PythonModel):
         max_annot_length = int(row.max_annot_length)
         temperature = row.temperature
 
+        print(f"Generating {num_pages} synthetic pages with {min_num_annot} to {max_num_annot} annotations of {max_annot_length} max length")
         try:
             syn_annotation_pages = []
             for page_number in range(num_pages):

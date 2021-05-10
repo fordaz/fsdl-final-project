@@ -3,5 +3,4 @@ mlflow
 dvc
 torchvision==0.8.1
 pyyaml
-color-palette
 Pillow==7.1.2

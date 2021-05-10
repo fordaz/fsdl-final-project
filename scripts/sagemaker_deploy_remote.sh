@@ -1,1 +1,1 @@
-mlflow sagemaker deploy -a fsdl-synth-docs -m model_artifacts/saved_model_baseline_wrapper -e arn:aws:iam::377867668474:role/service-role/AmazonSageMaker-ExecutionRole-20190726T194172
+mlflow sagemaker deploy --mode replace -a fsdl-synth-docs -m model_artifacts/saved_gru_model_baseline_wrapper -e arn:aws:iam::377867668474:role/service-role/AmazonSageMaker-ExecutionRole-20190726T194172
