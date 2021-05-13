@@ -1,1 +1,0 @@
-mlflow models serve -p 5001 -m model_artifacts/saved_model_baseline_wrapper 
