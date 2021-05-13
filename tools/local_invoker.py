@@ -17,7 +17,7 @@ def handle_request_response(model_endpoint, base_directory):
     if response.status_code == 200:
         save_syn_annotations_kits(base_directory, response.json())
     else:
-        print(f"Could not get a successful reponse {response}")
+        print(f"Could not get a successful reponse {dir(response)}")
 
 
 if __name__ == "__main__":
