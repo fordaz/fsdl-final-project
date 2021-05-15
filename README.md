@@ -47,6 +47,12 @@ Here is a brief description of the project structure:
 
 ## Working locally
 
+* Include the project root directory in the `PYTHONPATH` so all the modules are accessible for import.
+
+```
+export PYTHONPATH=./fsdl-final-project:$PYTHONPATH
+```
+
 * Configure training parameters located at `./config/train_local.yaml`
 * Training the model
 
