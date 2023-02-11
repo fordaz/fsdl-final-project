@@ -1,8 +1,9 @@
-import random
 import json
+import random
 
+from models.gru_model_sampling import decode_samples
+from models.gru_model_sampling import sample_from_gru_model
 from utilities.img_utils import *
-from models.gru_model_sampling import sample_from_gru_model, decode_samples
 
 
 def append_valid_annotations(sampled_annotations, valid_annotations):
@@ -45,9 +46,7 @@ def generate_syn_page(
         )
         sampled_annotations = decode_samples(sampled_token_idxs, vectorizer)
         total_annot += len(sampled_annotations)
-        num_valid_annot += append_valid_annotations(
-            sampled_annotations, valid_annotations
-        )
+        num_valid_annot += append_valid_annotations(sampled_annotations, valid_annotations)
         attempts += 1
     valid_annotations = valid_annotations[: min(len(valid_annotations), num_annot)]
     return valid_annotations, total_annot, num_valid_annot
@@ -58,13 +57,9 @@ def generate_syn_kit(idx, syn_annotation_page, blocks_lookup):
 
     syn_kit["annotations"] = syn_annotation_page
 
-    syn_kit["image_blocks"] = generate_img(
-        syn_annotation_page, blocks_lookup, boxed_text=True
-    )
+    syn_kit["image_blocks"] = generate_img(syn_annotation_page, blocks_lookup, boxed_text=True)
 
-    syn_kit["image"] = generate_img(
-        syn_annotation_page, blocks_lookup, boxed_text=False
-    )
+    syn_kit["image"] = generate_img(syn_annotation_page, blocks_lookup, boxed_text=False)
 
     return syn_kit
 

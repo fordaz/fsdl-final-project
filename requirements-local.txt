@@ -5,3 +5,4 @@ torchvision==0.8.1
 pyyaml
 Pillow==7.1.2
 pre-commit==2.19.0
+autoflake

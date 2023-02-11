@@ -1,7 +1,9 @@
-import torch
-from models.annotations_vocabulary import AnnotationsVocabulary
 import string
+
 import numpy as np
+import torch
+
+from models.annotations_vocabulary import AnnotationsVocabulary
 
 
 class AnnotationsVectorizer:
@@ -15,9 +17,7 @@ class AnnotationsVectorizer:
 
     def vectorize(self, annotation, vector_length=-1):
         indices = [self._vocab.begin_seq_index]
-        indices.extend(
-            [self._vocab.lookup_token(character) for character in annotation]
-        )
+        indices.extend([self._vocab.lookup_token(character) for character in annotation])
         indices.extend([self._vocab.end_seq_index])
 
         if vector_length < 0:

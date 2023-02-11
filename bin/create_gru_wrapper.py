@@ -1,7 +1,7 @@
-from sys import version_info
 import argparse
-import cloudpickle
+from sys import version_info
 
+import cloudpickle
 import mlflow
 
 from serving.gru_annotations_lm_wrapper import GRUAnnotationsWrapper

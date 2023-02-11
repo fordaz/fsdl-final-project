@@ -1,8 +1,9 @@
 import base64
-
 from io import BytesIO
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
 
 WIDTH, HIGHT = 800, 1000
 
@@ -21,9 +22,7 @@ def show_block_text(draw, block, font, boxed=False, color=(0, 0, 0)):
     right, bottom = bbox[2], bbox[3]
     if boxed:
         box_color = box_colors.get(block["label"], (238, 240, 218, 250))
-        draw.polygon(
-            [(left, top), (right, top), (right, bottom), (left, bottom)], box_color
-        )
+        draw.polygon([(left, top), (right, top), (right, bottom), (left, bottom)], box_color)
 
     draw.multiline_text((left, top), text, color, font=font, stroke_width=0)
 

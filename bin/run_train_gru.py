@@ -3,15 +3,14 @@ import argparse
 import torch
 
 from training.train_gru import train_driver
-from utilities.file_utils import check_rm_dir, check_rm_dirs_like, load_config_params
+from utilities.file_utils import check_rm_dirs_like
+from utilities.file_utils import load_config_params
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument(
-        "config", type=str, help="Configuration file with training parameters"
-    )
+    parser.add_argument("config", type=str, help="Configuration file with training parameters")
     parser.add_argument(
         "model_output_dir",
         type=str,

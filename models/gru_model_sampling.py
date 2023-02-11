@@ -1,9 +1,6 @@
 import torch
 import torch.nn.functional as F
 
-import string
-import random
-
 """
 This is an adaptation of the source code of the book (Chapter 7):
 Natural Language Processing with PyTorch, by Delip Rao and Brian McMahan

@@ -1,13 +1,13 @@
-import os
 import json
+import os
 import shutil
 from argparse import Namespace
-from yaml import load, dump
+import yaml
 
-try:
-    from yaml import CLoader as Loader, CDumper as Dumper
-except ImportError:
-    from yaml import Loader, Dumper
+# try:
+#     from yaml import CLoader as Loader, CDumper as Dumper
+# except ImportError:
+#     from yaml import Loader, Dumper
 from pathlib import Path
 
 
@@ -53,7 +53,8 @@ def save_by_line(body, base_output_dir, out_fname):
 def load_yaml(full_fname):
     with open(full_fname, "r") as input_file:
         raw_yaml = input_file.read()
-        return load(raw_yaml, Loader=Loader)
+        # return load(raw_yaml, Loader=Loader)
+        return yaml.safe_load(raw_yaml)
 
 
 def load_config_params(full_fname):

@@ -1,7 +1,7 @@
-import torch
-import mlflow
-
 import traceback
+
+import mlflow
+import torch
 
 from models.annotations_dataset import AnnotationsDataset
 from serving.wrapper_utils import *
@@ -10,14 +10,10 @@ from serving.wrapper_utils import *
 class GRUAnnotationsWrapper(mlflow.pyfunc.PythonModel):
     def load_context(self, context):
         if torch.cuda.is_available():
-            self.gru_model = mlflow.pytorch.load_model(
-                context.artifacts["pytorch_model"]
-            )
+            self.gru_model = mlflow.pytorch.load_model(context.artifacts["pytorch_model"])
         else:
             kwargs = {"map_location": torch.device("cpu")}
-            self.gru_model = mlflow.pytorch.load_model(
-                context.artifacts["pytorch_model"], **kwargs
-            )
+            self.gru_model = mlflow.pytorch.load_model(context.artifacts["pytorch_model"], **kwargs)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.gru_model.eval()
         self.dataset = AnnotationsDataset.load(context.artifacts["dataset_input_file"])
@@ -35,13 +31,17 @@ class GRUAnnotationsWrapper(mlflow.pyfunc.PythonModel):
         min_num_annot, max_num_annot = int(row.min_num_annot), int(row.max_num_annot)
         max_annot_length = int(row.max_annot_length)
         temperature = row.temperature
-
+        # fmt: off
         print(
-            f"Generating {num_pages} synthetic pages with {min_num_annot} to {max_num_annot} annotations of {max_annot_length} max length"
+            f"Generating {num_pages} \
+            synthetic pages with {min_num_annot} \
+            to {max_num_annot} \
+            annotations of {max_annot_length} max length"
         )
+        # fmt: on
         try:
             syn_annotation_pages = []
-            for page_number in range(num_pages):
+            for _ in range(num_pages):
                 raw_syn_annot, total_annot, num_valid_annot = generate_syn_page(
                     model,
                     vectorizer,

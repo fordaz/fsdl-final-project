@@ -1,6 +1,7 @@
-import requests
-import json
 import argparse
+import json
+
+import requests
 
 from tools.invoker_utils import *
 
@@ -35,9 +36,7 @@ def handle_request_response(
         ],
     }
 
-    response = requests.post(
-        model_endpoint, data=json.dumps(inference_request), headers=headers
-    )
+    response = requests.post(model_endpoint, data=json.dumps(inference_request), headers=headers)
 
     if response.status_code == 200:
         save_syn_annotations_kits(base_directory, response.json())
@@ -54,9 +53,7 @@ if __name__ == "__main__":
         help="Port number: mlflow 5001, sagemaker 5000",
         default=5001,
     )
-    parser.add_argument(
-        "--num_pages", type=int, help="Number of pages to generate", default=1
-    )
+    parser.add_argument("--num_pages", type=int, help="Number of pages to generate", default=1)
     parser.add_argument(
         "--min_annotations", type=int, help="Minimum number of annotations", default=20
     )

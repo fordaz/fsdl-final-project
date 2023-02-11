@@ -1,7 +1,7 @@
-from models.annotations_vectorizer import AnnotationsVectorizer
-
-from torch.utils.data import Dataset
 import pandas as pd
+from torch.utils.data import Dataset
+
+from models.annotations_vectorizer import AnnotationsVectorizer
 
 
 class AnnotationsDataset(Dataset):
@@ -47,9 +47,7 @@ class AnnotationsDataset(Dataset):
 
     def __getitem__(self, index):
         row = self._target_df.iloc[index]
-        from_vector, to_vector = self._vectorizer.vectorize(
-            row.annotation, self._max_seq_length
-        )
+        from_vector, to_vector = self._vectorizer.vectorize(row.annotation, self._max_seq_length)
         return {"x_data": from_vector, "y_target": to_vector}
 
     def get_num_batches(self, batch_size):

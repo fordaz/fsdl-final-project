@@ -1,10 +1,9 @@
-import os
 import json
-import logging
-import pandas as pd
 from pathlib import Path
 
-from utilities.file_utils import load_json, save_by_line
+import pandas as pd
+
+from utilities.file_utils import load_json
 
 
 def generate_block_sentences(input_json):
@@ -37,9 +36,7 @@ def remove_json_keys(input_json):
 
 
 def wrap_annotations(clean_annotations, split):
-    return [
-        {"annotation": annotation, "split": split} for annotation in clean_annotations
-    ]
+    return [{"annotation": annotation, "split": split} for annotation in clean_annotations]
 
 
 def process_raw_annotations(file_names, split_tagger):
@@ -63,9 +60,7 @@ def process_raw_annotations(file_names, split_tagger):
     return data_set
 
 
-def generate_clean_annotations(
-    input_train_dir, input_test_dir, train_split, full_output_fname
-):
+def generate_clean_annotations(input_train_dir, input_test_dir, train_split, full_output_fname):
     p = Path(input_train_dir)
     training_files = list(p.glob("**/*.json"))
 
@@ -88,6 +83,4 @@ def generate_clean_annotations(
     full_dataset_df = pd.DataFrame(full_dataset)
     print(full_dataset_df.split.value_counts())
 
-    full_dataset_df.to_csv(
-        full_output_fname, columns=["annotation", "split"], index=False
-    )
+    full_dataset_df.to_csv(full_output_fname, columns=["annotation", "split"], index=False)

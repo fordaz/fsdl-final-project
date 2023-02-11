@@ -1,6 +1,7 @@
+import json
+
 import boto3
 import pandas as pd
-import json
 
 from tools.invoker_utils import *
 

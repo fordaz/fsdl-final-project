@@ -1,15 +1,11 @@
-import os
-import logging
-import yaml
 import argparse
-import pandas as pd
+import logging
+import os
 
 from preprocessing.annotations import generate_clean_annotations
 from utilities.file_utils import check_mkdir
 
-
 logging.basicConfig(filename="preprocessing.log", level=logging.INFO)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -42,9 +38,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    full_output_fname = os.path.join(
-        args.output_dataset_dir, args.output_dataset_file_name
-    )
+    full_output_fname = os.path.join(args.output_dataset_dir, args.output_dataset_file_name)
 
     logging.info(
         f"Using input folders {args.input_train_dir} {args.input_test_dir}, output file {full_output_fname}"

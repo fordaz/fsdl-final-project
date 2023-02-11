@@ -1,31 +1,16 @@
-import time
-from argparse import Namespace
-import random
 import traceback
 
-import numpy as np
-
-import torch
-import torch.nn.functional as F
-from torch.utils.data import DataLoader
-
-import mlflow
-from mlflow.models.signature import infer_signature
-from mlflow.models.signature import ModelSignature
-from mlflow.types.schema import Schema, TensorSpec
 import mlflow.pyfunc
+import torch
 
 from models.annotations_dataset import AnnotationsDataset
 from models.gru_annotations_lm import GRUAnnotationsLM
-from training.training_context import TrainingContext
-from training.train_utils import (
-    generate_batches,
-    normalize_sizes,
-    sequence_loss,
-    compute_accuracy,
-    set_seed,
-)
 from models.gru_model_sampling import sample_model
+from training.train_utils import compute_accuracy
+from training.train_utils import generate_batches
+from training.train_utils import sequence_loss
+from training.train_utils import set_seed
+from training.training_context import TrainingContext
 
 
 def train_driver(dataset_fname, saved_model_fname, args):
@@ -47,9 +32,7 @@ def train(dataset, saved_model_fname, dataset_fname, args):
 
     print(f"Training using device {args.device}")
 
-    model = GRUAnnotationsLM(
-        vocab_size, args.embedding_dim, args.hidden_dim, mask_index
-    )
+    model = GRUAnnotationsLM(vocab_size, args.embedding_dim, args.hidden_dim, mask_index)
 
     model = model.to(args.device)
 
@@ -64,9 +47,7 @@ def train(dataset, saved_model_fname, dataset_fname, args):
         for epoch in range(args.epochs):
             print(f"Starting epoch {epoch}")
 
-            train_metrics = train_on_batches(
-                dataset, model, optimizer, mask_index, args
-            )
+            train_metrics = train_on_batches(dataset, model, optimizer, mask_index, args)
 
             train_ctx.append_metrics(train_metrics)
             mlflow.log_metrics(train_metrics)
@@ -83,9 +64,7 @@ def train(dataset, saved_model_fname, dataset_fname, args):
             print(f"sampled_annotations {sampled_annotations}")
 
             if train_ctx.stop_early:
-                print(
-                    f"Early stopping, best validation loss {train_ctx.early_stopping_best_val}"
-                )
+                print(f"Early stopping, best validation loss {train_ctx.early_stopping_best_val}")
                 break
 
         test_metrics = test_on_batches("test", dataset, model, mask_index, args)
@@ -103,9 +82,7 @@ def train(dataset, saved_model_fname, dataset_fname, args):
 
 def train_on_batches(dataset, model, optimizer, mask_index, args):
     dataset.set_split("train")
-    batch_generator = generate_batches(
-        dataset, batch_size=args.batch_size, device=args.device
-    )
+    batch_generator = generate_batches(dataset, batch_size=args.batch_size, device=args.device)
 
     running_loss, running_acc = 0.0, 0.0
 
@@ -136,9 +113,7 @@ def train_on_batches(dataset, model, optimizer, mask_index, args):
 
 def test_on_batches(test_type, dataset, model, mask_index, args):
     dataset.set_split(test_type)
-    batch_generator = generate_batches(
-        dataset, batch_size=args.batch_size, device=args.device
-    )
+    batch_generator = generate_batches(dataset, batch_size=args.batch_size, device=args.device)
     running_loss, running_acc = 0.0, 0.0
 
     model.eval()

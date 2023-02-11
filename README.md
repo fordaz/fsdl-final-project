@@ -45,10 +45,6 @@ Here is a brief description of the project structure:
 * Have github installed and configured
 * Use conda or another package manager and install dependencies using requirements-local.txt file
 
-# Pre-commit hooks
-
-Few pre-commit hooks are in place.
-
 ## Working locally
 
 * Include the project root directory in the `PYTHONPATH` so all the modules are accessible for import.

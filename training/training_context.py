@@ -1,4 +1,5 @@
 from collections import defaultdict
+
 import mlflow
 
 
@@ -34,9 +35,7 @@ class TrainingContext:
             else:
                 # Save the best model
                 if loss_t < self.early_stopping_best_val:
-                    mlflow.pytorch.save_model(
-                        pytorch_model=model, path=saved_model_fname
-                    )
+                    mlflow.pytorch.save_model(pytorch_model=model, path=saved_model_fname)
                     self.early_stopping_best_val = loss_t
 
                 # Reset early stopping step
