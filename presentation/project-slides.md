@@ -74,7 +74,7 @@ The basic architecture is defined as:
 ---
 
 ### Model Training
- 
+
 ![example 2](mlflow-params.png)
 
 ---
@@ -131,13 +131,13 @@ The basic architecture is defined as:
 
 ```
    {
-      "box": [677, 639, 749, 669], "text": ".44", 
+      "box": [677, 639, 749, 669], "text": ".44",
       "label": "answer", "linking": [[94, 16]], "id": 35
-   }, 
+   },
    {
-      "box": [533, 197, 617, 256], "text": "(P2/ 95", 
+      "box": [533, 197, 617, 256], "text": "(P2/ 95",
       "label": "answer", "linking": [[31, 3]], "id": 3
-   }, 
+   },
 ```
 
 ---
@@ -148,11 +148,11 @@ The basic architecture is defined as:
 
 ```
    {
-      "text": "Code Speciop", "box": [49, 975, 160, 799], 
+      "text": "Code Speciop", "box": [49, 975, 160, 799],
       "linking": [], "label": "question", "id": 28
-   }, 
+   },
    {
-      "box": [121, 59, 252, 25], "text": "02328620", 
+      "box": [121, 59, 252, 25], "text": "02328620",
       "label": "question", "linking": [[5, 47]], "id": 5
    }
 ```

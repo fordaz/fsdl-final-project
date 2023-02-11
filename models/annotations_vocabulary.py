@@ -1,6 +1,6 @@
 class AnnotationsVocabulary():
     """
-    This is an adaptation of the source code of the book (Chapter 7): 
+    This is an adaptation of the source code of the book (Chapter 7):
     Natural Language Processing with PyTorch, by Delip Rao and Brian McMahan
     """
     START_SEQ = "<begin>"
@@ -17,7 +17,7 @@ class AnnotationsVocabulary():
 
         if not token_to_idx:
             self._token_to_idx = {}
-        
+
         self._idx_to_token = {}
 
         self.mask_index = self.add_token(self._mask_token)
@@ -28,7 +28,7 @@ class AnnotationsVocabulary():
     def to_serializable(self):
         return {'_token_to_idx': self._token_to_idx,
                 'unk_token': self._unk_token,
-                'mask_token':self._mask_token, 
+                'mask_token':self._mask_token,
                 'begin_seq_token':self._begin_seq_token,
                 'end_seq_token':self._end_seq_token}
 

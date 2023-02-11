@@ -37,8 +37,8 @@ class GRUAnnotationsWrapper(mlflow.pyfunc.PythonModel):
             syn_annotation_pages = []
             for page_number in range(num_pages):
                 raw_syn_annot, total_annot, num_valid_annot = generate_syn_page(
-                                                                model, vectorizer, self.device, 
-                                                                min_num_annot, max_num_annot, 
+                                                                model, vectorizer, self.device,
+                                                                min_num_annot, max_num_annot,
                                                                 max_annot_length, temperature)
                 self.total_annots += total_annot
                 self.total_valid_annots += num_valid_annot

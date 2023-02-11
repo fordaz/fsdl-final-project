@@ -9,7 +9,3 @@ batch_check_point: 100
 sample_text_len: 500
 early_stopping_criteria: 5
 seed: 1337
-
-
-
-

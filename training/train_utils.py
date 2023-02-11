@@ -4,9 +4,9 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 def generate_batches(dataset, batch_size, shuffle=False,
-                     drop_last=True, device="cpu"): 
+                     drop_last=True, device="cpu"):
     """
-    A generator function which wraps the PyTorch DataLoader. It will 
+    A generator function which wraps the PyTorch DataLoader. It will
       ensure each tensor is on the write device location.
     """
     dataloader = DataLoader(dataset=dataset, batch_size=batch_size,
@@ -21,7 +21,7 @@ def generate_batches(dataset, batch_size, shuffle=False,
 
 def normalize_sizes(y_pred, y_true):
     """Normalize tensor sizes
-    
+
     Args:
         y_pred (torch.Tensor): the output of the model
             If a 3-dimensional tensor, reshapes to a matrix
@@ -44,10 +44,10 @@ def compute_accuracy(y_pred, y_true, mask_index):
     y_pred, y_true = normalize_sizes(y_pred, y_true)
 
     _, y_pred_indices = y_pred.max(dim=1)
-    
+
     correct_indices = torch.eq(y_pred_indices, y_true).float()
     valid_indices = torch.ne(y_true, mask_index).float()
-    
+
     n_correct = (correct_indices * valid_indices).sum().item()
     n_valid = valid_indices.sum().item()
 

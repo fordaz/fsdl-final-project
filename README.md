@@ -6,7 +6,7 @@ This is the repo of my [final project](http://fordaz.github.io/synthetic-annotat
 
 Here is a brief description of the project structure:
 
-## Core ML 
+## Core ML
 
 * preprocessing: basic python pre-processing logic to generate single-line JSON annotations.
 * models: python code for the model architecture, dataset, vectorizer and vocabulary.
@@ -44,6 +44,10 @@ Here is a brief description of the project structure:
 * Install DVC, MLFlow and configure it according to your needs.
 * Have github installed and configured
 * Use conda or another package manager and install dependencies using requirements-local.txt file
+
+# Pre-commit hooks
+
+Few pre-commit hooks are in place.
 
 ## Working locally
 
@@ -123,6 +127,3 @@ git pull
 ./scripts/sagemaker_deploy_remote.sh
 ./scripts/sagemaker_inference_remote.sh
 ```
-
-
-

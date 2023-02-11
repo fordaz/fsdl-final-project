@@ -44,4 +44,3 @@ if __name__ == "__main__":
         handle_request_response(app_name, smrt, base_directory)
     else:
         print(f"Could not get inference. Endpoint status: {endpoint}")
-

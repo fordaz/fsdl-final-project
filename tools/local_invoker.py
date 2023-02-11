@@ -4,8 +4,8 @@ import argparse
 
 from tools.invoker_utils import *
 
-def handle_request_response(model_endpoint, base_directory, num_pages, 
-                            min_annotations, max_annotations, max_annotation_length, 
+def handle_request_response(model_endpoint, base_directory, num_pages,
+                            min_annotations, max_annotations, max_annotation_length,
                             temperature):
 
     headers = {'Content-Type': 'application/json'}
@@ -47,6 +47,6 @@ if __name__ == "__main__":
     model_endpoint = f"http://127.0.0.1:{port}/invocations"
     base_directory = "synthetic"
 
-    handle_request_response(model_endpoint, base_directory, num_pages, 
-                            min_annotations, max_annotations, max_annotation_length, 
+    handle_request_response(model_endpoint, base_directory, num_pages,
+                            min_annotations, max_annotations, max_annotation_length,
                             temperature)

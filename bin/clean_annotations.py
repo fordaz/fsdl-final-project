@@ -29,7 +29,7 @@ if __name__ == '__main__':
     # Check and create output dir if needed
     check_mkdir(args.output_dataset_dir)
 
-    generate_clean_annotations(args.input_train_dir, 
-                               args.input_test_dir, 
-                               args.train_split, 
+    generate_clean_annotations(args.input_train_dir,
+                               args.input_test_dir,
+                               args.train_split,
                                full_output_fname)

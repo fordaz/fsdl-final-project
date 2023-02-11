@@ -59,9 +59,9 @@ def process_raw_annotations(file_names, split_tagger):
     return data_set
 
 
-def generate_clean_annotations(input_train_dir, 
-                               input_test_dir, 
-                               train_split, 
+def generate_clean_annotations(input_train_dir,
+                               input_test_dir,
+                               train_split,
                                full_output_fname):
     p = Path(input_train_dir)
     training_files = list(p.glob('**/*.json'))
@@ -71,14 +71,14 @@ def generate_clean_annotations(input_train_dir,
 
     full_dataset = []
 
-    train_val_dataset = process_raw_annotations(training_files, 
+    train_val_dataset = process_raw_annotations(training_files,
                                                  lambda idx: "train" if idx <= num_training_files else "val")
     full_dataset.extend(train_val_dataset)
 
     p = Path(input_test_dir)
     testing_files = list(p.glob('**/*.json'))
 
-    test_dataset = process_raw_annotations(testing_files, 
+    test_dataset = process_raw_annotations(testing_files,
                                             lambda idx: "test")
     full_dataset.extend(test_dataset)
 

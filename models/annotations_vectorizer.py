@@ -5,7 +5,7 @@ import numpy as np
 
 class AnnotationsVectorizer():
     """
-    This is an adaptation of the source code of the book (Chapter 7): 
+    This is an adaptation of the source code of the book (Chapter 7):
     Natural Language Processing with PyTorch, by Delip Rao and Brian McMahan
     """
     def __init__(self, annotations_vocab):
@@ -28,7 +28,7 @@ class AnnotationsVectorizer():
         to_indices = indices[1:]
         to_vector[:len(to_indices)] = to_indices
         to_vector[len(to_indices):] = self._vocab.mask_index
-        
+
         return from_vector, to_vector
 
     def vectorize_input(self, annotation):
@@ -48,9 +48,9 @@ class AnnotationsVectorizer():
         for annotation in annotations:
             for token in annotation:
                 vocab.add_token(token)
-        
+
         return cls(vocab)
-    
+
     @classmethod
     def from_dataframe(cls, annotations_df):
         vocab = AnnotationsVocabulary()
@@ -61,7 +61,7 @@ class AnnotationsVectorizer():
         for index, row in annotations_df.iterrows():
             for token in row.annotation:
                 vocab.add_token(token)
-        
+
         return cls(vocab)
 
     @classmethod
@@ -71,6 +71,6 @@ class AnnotationsVectorizer():
 
     def to_serializable(self):
         return {'vocab': self._vocab}
-    
+
     def get_vocabulary(self):
         return self._vocab

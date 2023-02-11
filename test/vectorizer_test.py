@@ -9,7 +9,7 @@ class TestSum(unittest.TestCase):
             '{"box": [85, 141, 119, 152], "text": "SOURCE", "label": "question", "linking": [[1, 38]], "id": 1}'
         ]
         vectorizer = AnnotationsVectorizer.from_text(annotations)
-        
+
         self.assertFalse(vectorizer is None)
 
         vec_annotation = vectorizer.vectorize('{"box": [84, 109, 136, 119], "text": "COMPOUND", "label": "question", "linking": [[0, 37]], "id": 0}')

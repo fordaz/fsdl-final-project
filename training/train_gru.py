@@ -18,10 +18,10 @@ import mlflow.pyfunc
 from models.annotations_dataset import AnnotationsDataset
 from models.gru_annotations_lm import GRUAnnotationsLM
 from training.training_context import TrainingContext
-from training.train_utils import (generate_batches, 
-                                  normalize_sizes, 
-                                  sequence_loss, 
-                                  compute_accuracy, 
+from training.train_utils import (generate_batches,
+                                  normalize_sizes,
+                                  sequence_loss,
+                                  compute_accuracy,
                                   set_seed)
 from models.gru_model_sampling import sample_model
 
@@ -33,7 +33,7 @@ def train_driver(dataset_fname, saved_model_fname, args):
 
 def train(dataset, saved_model_fname, dataset_fname, args):
     """
-    This is an adaptation of the source code of the book (Chapter 7): 
+    This is an adaptation of the source code of the book (Chapter 7):
     Natural Language Processing with PyTorch, by Delip Rao and Brian McMahan
     """
     set_seed(args.seed)
@@ -45,7 +45,7 @@ def train(dataset, saved_model_fname, dataset_fname, args):
 
     print(f"Training using device {args.device}")
 
-    model = GRUAnnotationsLM(vocab_size, args.embedding_dim, 
+    model = GRUAnnotationsLM(vocab_size, args.embedding_dim,
                              args.hidden_dim, mask_index)
 
     model = model.to(args.device)
@@ -62,7 +62,7 @@ def train(dataset, saved_model_fname, dataset_fname, args):
             print(f"Starting epoch {epoch}")
 
             train_metrics = train_on_batches(dataset, model, optimizer, mask_index, args)
-            
+
             train_ctx.append_metrics(train_metrics)
             mlflow.log_metrics(train_metrics)
 
@@ -96,8 +96,8 @@ def train(dataset, saved_model_fname, dataset_fname, args):
 
 def train_on_batches(dataset, model, optimizer, mask_index, args):
     dataset.set_split('train')
-    batch_generator = generate_batches(dataset, 
-                                        batch_size=args.batch_size, 
+    batch_generator = generate_batches(dataset,
+                                        batch_size=args.batch_size,
                                         device=args.device)
 
     running_loss, running_acc = 0.0, 0.0
@@ -121,14 +121,14 @@ def train_on_batches(dataset, model, optimizer, mask_index, args):
 
         if batch_index % args.batch_check_point == 0:
             print(f"train: Have processed {batch_index} running_loss {running_loss}, running_acc {running_acc}")
-    
+
     return {"train_loss": running_loss, "train_acc": running_acc}
 
 
 def test_on_batches(test_type, dataset, model, mask_index, args):
     dataset.set_split(test_type)
-    batch_generator = generate_batches(dataset, 
-                                        batch_size=args.batch_size, 
+    batch_generator = generate_batches(dataset,
+                                        batch_size=args.batch_size,
                                         device=args.device)
     running_loss, running_acc = 0.0, 0.0
 
@@ -145,9 +145,5 @@ def test_on_batches(test_type, dataset, model, mask_index, args):
 
         if batch_index % args.batch_check_point == 0:
             print(f"{test_type}: Have processed {batch_index} running_loss {running_loss}, running_acc {running_acc}")
-    
+
     return {f"{test_type}_loss": running_loss, f"{test_type}_acc": running_acc}
-
-
-
-

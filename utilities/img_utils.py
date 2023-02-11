@@ -27,7 +27,7 @@ def show_block_text(draw, block, font, boxed=False, color=(0,0,0)):
 
 def generate_img(syn_annotation_page, blocks_lookup, boxed_text=False):
     image = Image.new('RGBA', (WIDTH, HIGHT), (255, 255, 255))
-    draw = ImageDraw.Draw(image, mode='RGBA')  
+    draw = ImageDraw.Draw(image, mode='RGBA')
     font = ImageFont.load_default()
 
     for block in syn_annotation_page["form"]:

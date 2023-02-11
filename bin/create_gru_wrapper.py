@@ -37,7 +37,7 @@ def save_model_wrapper(saved_model_fname, dataset_fname):
 
     mlflow_pyfunc_model_fname = f"{saved_model_fname}_wrapper"
     mlflow.pyfunc.save_model(path=mlflow_pyfunc_model_fname, code_path=["training", "models", "serving", "utilities"],
-                             python_model=GRUAnnotationsWrapper(), 
+                             python_model=GRUAnnotationsWrapper(),
                              artifacts=artifacts, conda_env=conda_env)
 
 if __name__ == '__main__':

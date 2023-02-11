@@ -24,7 +24,7 @@ class TrainingContext():
         # Save model if performance improved
         elif epoch >= 1:
             loss_tm1, loss_t = self.all_metrics['val_loss'][-2:]
-            
+
             # If loss worsened
             if loss_t >= loss_tm1:
                 # Update step
