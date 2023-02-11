@@ -3,14 +3,15 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
-def generate_batches(dataset, batch_size, shuffle=False,
-                     drop_last=True, device="cpu"):
+
+def generate_batches(dataset, batch_size, shuffle=False, drop_last=True, device="cpu"):
     """
     A generator function which wraps the PyTorch DataLoader. It will
       ensure each tensor is on the write device location.
     """
-    dataloader = DataLoader(dataset=dataset, batch_size=batch_size,
-                            shuffle=shuffle, drop_last=drop_last)
+    dataloader = DataLoader(
+        dataset=dataset, batch_size=batch_size, shuffle=shuffle, drop_last=drop_last
+    )
 
     for data_dict in dataloader:
         out_data_dict = {}

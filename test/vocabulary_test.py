@@ -2,6 +2,7 @@ import unittest
 
 from models.annotations_vocabulary import AnnotationsVocabulary
 
+
 class TestSum(unittest.TestCase):
     def test(self):
         vocab = AnnotationsVocabulary()
@@ -16,5 +17,6 @@ class TestSum(unittest.TestCase):
 
         self.assertEqual(len(vocab), 4)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -3,11 +3,13 @@ import json
 import shutil
 from argparse import Namespace
 from yaml import load, dump
+
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
     from yaml import Loader, Dumper
 from pathlib import Path
+
 
 def load_json(full_fname):
     with open(full_fname, "r") as input_file:

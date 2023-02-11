@@ -2,8 +2,17 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class GRUAnnotationsLM(nn.Module):
-    def __init__(self, char_vocab_size, char_embedding_size, rnn_hidden_size, padding_idx=0, batch_first=True, dropout_p=0.5):
+    def __init__(
+        self,
+        char_vocab_size,
+        char_embedding_size,
+        rnn_hidden_size,
+        padding_idx=0,
+        batch_first=True,
+        dropout_p=0.5,
+    ):
         """
         Args:
             char_embedding_size (int): The size of the character embeddings
@@ -18,16 +27,19 @@ class GRUAnnotationsLM(nn.Module):
         """
         super(GRUAnnotationsLM, self).__init__()
 
-        self.char_emb = nn.Embedding(num_embeddings=char_vocab_size,
-                                     embedding_dim=char_embedding_size,
-                                     padding_idx=padding_idx)
+        self.char_emb = nn.Embedding(
+            num_embeddings=char_vocab_size,
+            embedding_dim=char_embedding_size,
+            padding_idx=padding_idx,
+        )
 
-        self.rnn = nn.GRU(input_size=char_embedding_size,
-                          hidden_size=rnn_hidden_size,
-                          batch_first=batch_first)
+        self.rnn = nn.GRU(
+            input_size=char_embedding_size,
+            hidden_size=rnn_hidden_size,
+            batch_first=batch_first,
+        )
 
-        self.fc = nn.Linear(in_features=rnn_hidden_size,
-                            out_features=char_vocab_size)
+        self.fc = nn.Linear(in_features=rnn_hidden_size, out_features=char_vocab_size)
 
         self._dropout_p = dropout_p
 

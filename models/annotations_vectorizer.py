@@ -3,17 +3,21 @@ from models.annotations_vocabulary import AnnotationsVocabulary
 import string
 import numpy as np
 
-class AnnotationsVectorizer():
+
+class AnnotationsVectorizer:
     """
     This is an adaptation of the source code of the book (Chapter 7):
     Natural Language Processing with PyTorch, by Delip Rao and Brian McMahan
     """
+
     def __init__(self, annotations_vocab):
         self._vocab = annotations_vocab
 
     def vectorize(self, annotation, vector_length=-1):
         indices = [self._vocab.begin_seq_index]
-        indices.extend([self._vocab.lookup_token(character) for character in annotation])
+        indices.extend(
+            [self._vocab.lookup_token(character) for character in annotation]
+        )
         indices.extend([self._vocab.end_seq_index])
 
         if vector_length < 0:
@@ -21,13 +25,13 @@ class AnnotationsVectorizer():
 
         from_vector = np.empty(vector_length, dtype=np.int64)
         from_indices = indices[:-1]
-        from_vector[:len(from_indices)] = from_indices
-        from_vector[len(from_indices):] = self._vocab.mask_index
+        from_vector[: len(from_indices)] = from_indices
+        from_vector[len(from_indices) :] = self._vocab.mask_index
 
         to_vector = np.empty(vector_length, dtype=np.int64)
         to_indices = indices[1:]
-        to_vector[:len(to_indices)] = to_indices
-        to_vector[len(to_indices):] = self._vocab.mask_index
+        to_vector[: len(to_indices)] = to_indices
+        to_vector[len(to_indices) :] = self._vocab.mask_index
 
         return from_vector, to_vector
 
@@ -66,11 +70,11 @@ class AnnotationsVectorizer():
 
     @classmethod
     def from_serializable(cls, contents):
-        vocab = AnnotationsVocabulary.from_serializable(contents['vocab'])
+        vocab = AnnotationsVocabulary.from_serializable(contents["vocab"])
         return cls(vocab)
 
     def to_serializable(self):
-        return {'vocab': self._vocab}
+        return {"vocab": self._vocab}
 
     def get_vocabulary(self):
         return self._vocab

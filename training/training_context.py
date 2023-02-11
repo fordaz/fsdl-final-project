@@ -2,12 +2,12 @@ from collections import defaultdict
 import mlflow
 
 
-class TrainingContext():
+class TrainingContext:
     def __init__(self, args):
         self.all_metrics = defaultdict(list)
         self.stop_early = False
         self.early_stopping_step = 0
-        self.early_stopping_best_val = float('inf')
+        self.early_stopping_best_val = float("inf")
         self.early_stopping_criteria = args.early_stopping_criteria
 
     def append_metrics(self, metrics):
@@ -23,7 +23,7 @@ class TrainingContext():
 
         # Save model if performance improved
         elif epoch >= 1:
-            loss_tm1, loss_t = self.all_metrics['val_loss'][-2:]
+            loss_tm1, loss_t = self.all_metrics["val_loss"][-2:]
 
             # If loss worsened
             if loss_t >= loss_tm1:
@@ -34,7 +34,9 @@ class TrainingContext():
             else:
                 # Save the best model
                 if loss_t < self.early_stopping_best_val:
-                    mlflow.pytorch.save_model(pytorch_model=model, path=saved_model_fname)
+                    mlflow.pytorch.save_model(
+                        pytorch_model=model, path=saved_model_fname
+                    )
                     self.early_stopping_best_val = loss_t
 
                 # Reset early stopping step

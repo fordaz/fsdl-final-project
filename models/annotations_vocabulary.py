@@ -1,15 +1,20 @@
-class AnnotationsVocabulary():
+class AnnotationsVocabulary:
     """
     This is an adaptation of the source code of the book (Chapter 7):
     Natural Language Processing with PyTorch, by Delip Rao and Brian McMahan
     """
+
     START_SEQ = "<begin>"
     END_SEQ = "<end>"
 
-    def __init__(self, token_to_idx=None, unk_token="<UNK>",
-                 mask_token="<MASK>", begin_seq_token="<BEGIN>",
-                 end_seq_token="<END>"):
-
+    def __init__(
+        self,
+        token_to_idx=None,
+        unk_token="<UNK>",
+        mask_token="<MASK>",
+        begin_seq_token="<BEGIN>",
+        end_seq_token="<END>",
+    ):
         self._mask_token = mask_token
         self._unk_token = unk_token
         self._begin_seq_token = begin_seq_token
@@ -26,11 +31,13 @@ class AnnotationsVocabulary():
         self.end_seq_index = self.add_token(self._end_seq_token)
 
     def to_serializable(self):
-        return {'_token_to_idx': self._token_to_idx,
-                'unk_token': self._unk_token,
-                'mask_token':self._mask_token,
-                'begin_seq_token':self._begin_seq_token,
-                'end_seq_token':self._end_seq_token}
+        return {
+            "_token_to_idx": self._token_to_idx,
+            "unk_token": self._unk_token,
+            "mask_token": self._mask_token,
+            "begin_seq_token": self._begin_seq_token,
+            "end_seq_token": self._end_seq_token,
+        }
 
     @classmethod
     def from_serializable(cls, contents):
